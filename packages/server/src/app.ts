@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ServerConfig } from './config.js';
+import type { Db } from './db/connection.js';
 import { registerHostGuard } from './host-guard.js';
 import { apiRoutes } from './routes/api.js';
 import { registerWebUi } from './web-ui.js';
@@ -10,6 +11,8 @@ export const DEFAULT_WEB_DIST_DIR = fileURLToPath(new URL('../../web/dist', impo
 
 export interface BuildAppOptions {
   config: ServerConfig;
+  /** Open, migrated database. The app takes ownership and closes it on `app.close()`. */
+  db: Db;
   /** Directory containing the built web UI. Defaults to packages/web/dist. */
   webDistDir?: string;
   logger?: boolean;
@@ -17,10 +20,14 @@ export interface BuildAppOptions {
 
 export async function buildApp({
   config,
+  db,
   webDistDir = DEFAULT_WEB_DIST_DIR,
   logger = false,
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({ logger });
+  app.addHook('onClose', async () => {
+    db.close();
+  });
 
   registerHostGuard(app, config.port);
   await app.register(apiRoutes, { prefix: '/api', dataDir: config.dataDir });

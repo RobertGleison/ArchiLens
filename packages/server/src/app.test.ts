@@ -6,6 +6,7 @@ import type { FastifyInstance, InjectOptions } from 'fastify';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp, type BuildAppOptions } from './app.js';
 import type { ServerConfig } from './config.js';
+import { openDatabase } from './db/connection.js';
 import { SERVER_VERSION } from './version.js';
 
 const config: ServerConfig = { host: '127.0.0.1', port: 4317, dataDir: '/tmp/archilens-data' };
@@ -14,7 +15,12 @@ const LOCAL_HOST = `127.0.0.1:${config.port}`;
 let app: FastifyInstance | undefined;
 
 async function start(options: Partial<BuildAppOptions> = {}): Promise<FastifyInstance> {
-  app = await buildApp({ config, webDistDir: join(tmpdir(), 'archilens-no-web'), ...options });
+  app = await buildApp({
+    config,
+    db: openDatabase(':memory:'),
+    webDistDir: join(tmpdir(), 'archilens-no-web'),
+    ...options,
+  });
   return app;
 }
 
@@ -43,6 +49,17 @@ describe('GET /api/health', () => {
     const res = await get(await start(), '/api/does-not-exist');
     expect(res.statusCode).toBe(404);
     expect(res.headers['content-type']).toMatch(/application\/json/);
+  });
+});
+
+describe('database lifecycle', () => {
+  it('closes the database when the app closes', async () => {
+    const db = openDatabase(':memory:');
+    const instance = await start({ db });
+    expect(db.open).toBe(true);
+
+    await instance.close();
+    expect(db.open).toBe(false);
   });
 });
 
