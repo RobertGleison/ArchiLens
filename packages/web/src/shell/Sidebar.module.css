@@ -1,0 +1,135 @@
+/* Workspace navigation, Figma 3:14413. Sidebar text uses line-height: normal like the design. */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-34);
+  height: 100%;
+  /* 30px top: the scale has no 30, so compose it. */
+  padding: calc(var(--space-28) + var(--space-2)) var(--space-16) var(--space-20);
+  overflow-y: auto;
+  color: var(--color-on-dark);
+  background: var(--color-surface-inverse);
+  line-height: var(--line-height-normal);
+}
+
+/* The global accent focus ring is low-contrast on the dark background. */
+.sidebar :focus-visible {
+  outline-color: var(--color-on-dark);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-34);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.logo,
+.navIcon,
+.pinnedIcon,
+.connectionIcon {
+  flex-shrink: 0;
+}
+
+.productName {
+  composes: body from '../styles/typography.module.css';
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navItem {
+  composes: bodySm from '../styles/typography.module.css';
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  height: var(--size-nav-item);
+  padding: 0 var(--space-12);
+  border-radius: var(--radius-md);
+  color: var(--color-on-dark);
+  background: var(--color-surface-inverse);
+  line-height: var(--line-height-normal);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background: var(--color-on-dark-hover);
+}
+
+.navItemActive,
+.navItemActive:hover {
+  background: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pinned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0 var(--space-12);
+}
+
+.overline {
+  composes: overline from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-on-dark-muted);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.pinnedLink {
+  composes: bodySm from '../styles/typography.module.css';
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  color: var(--color-on-dark);
+  line-height: var(--line-height-normal);
+  text-decoration: none;
+}
+
+.pinnedLink:hover {
+  text-decoration: underline;
+}
+
+.connection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  border: var(--border-width) solid var(--color-on-dark-border);
+  border-radius: var(--radius-md);
+}
+
+.connectionLabel {
+  composes: caption from '../styles/typography.module.css';
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.connectionDetail {
+  composes: overline from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-on-dark-muted);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-transform: none;
+}

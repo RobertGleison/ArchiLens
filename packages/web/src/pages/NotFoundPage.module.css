@@ -1,0 +1,9 @@
+.body {
+  composes: body from '../styles/typography.module.css';
+  margin: 0;
+}
+
+.link {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}

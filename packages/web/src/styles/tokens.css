@@ -27,6 +27,7 @@
   --color-on-dark: #ffffff;
   --color-on-dark-muted: #d9d9d9;
   --color-on-dark-border: rgba(255, 255, 255, 0.15);
+  --color-on-dark-hover: rgba(255, 255, 255, 0.06); /* sidebar nav item hover (not in Figma) */
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -97,4 +98,6 @@
   --size-table-row-min: 60px;
   --size-utility-bar: 68px;
   --size-sidebar: 216px; /* sidebar width */
+  --size-aside: 346px; /* detail-screen aside column */
+  --size-aside-wide: 390px; /* overview aside column */
 }

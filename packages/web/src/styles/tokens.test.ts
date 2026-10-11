@@ -19,6 +19,7 @@ const EXPECTED: Record<string, string> = {
   '--color-on-dark': '#ffffff',
   '--color-on-dark-muted': '#d9d9d9',
   '--color-on-dark-border': 'rgba(255, 255, 255, 0.15)',
+  '--color-on-dark-hover': 'rgba(255, 255, 255, 0.06)',
 
   '--font-weight-regular': '400',
   '--font-weight-medium': '500',
@@ -66,6 +67,8 @@ const EXPECTED: Record<string, string> = {
   '--size-table-row-min': '60px',
   '--size-utility-bar': '68px',
   '--size-sidebar': '216px',
+  '--size-aside': '346px',
+  '--size-aside-wide': '390px',
 };
 
 describe('design tokens', () => {
@@ -92,7 +95,15 @@ describe('design tokens', () => {
   });
 
   it('defines the documented icon sizes', () => {
-    expect(ICON_SIZE).toEqual({ pill: 12, input: 14, button: 15, card: 16, nav: 18, logo: 28 });
+    expect(ICON_SIZE).toEqual({
+      pill: 12,
+      input: 14,
+      button: 15,
+      card: 16,
+      search: 17,
+      nav: 18,
+      logo: 28,
+    });
   });
 
   it('has a typography class for every type-scale token', () => {

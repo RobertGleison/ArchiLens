@@ -1,0 +1,47 @@
+/* Two columns: fixed sidebar + fluid application area (utility bar, then page content). */
+.shell {
+  display: grid;
+  grid-template-columns: var(--size-sidebar) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* Full-height sidebar that stays put while the page scrolls; its footer is pinned to the bottom. */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.application {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: var(--space-page);
+}
+
+.content:focus {
+  outline: none;
+}
+
+.skipLink {
+  composes: bodySm from '../styles/typography.module.css';
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: 1;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: none;
+}

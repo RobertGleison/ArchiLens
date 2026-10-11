@@ -29,6 +29,8 @@ export const ICON_SIZE = {
   button: 15,
   /** Card titles, sidebar footer. */
   card: 16,
+  /** Utility bar global search trigger. */
+  search: 17,
   /** Nav items, utility bar. */
   nav: 18,
   /** The `blocks` product logo. */
