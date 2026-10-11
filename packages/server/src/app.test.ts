@@ -116,11 +116,23 @@ describe('serving the web UI', () => {
     expect(res.headers['content-type']).toMatch(/text\/html/);
   });
 
-  it('returns 404 for missing files instead of index.html', async () => {
-    const res = await get(await start({ webDistDir }), '/assets/missing.js');
-    expect(res.statusCode).toBe(404);
-    expect(res.headers['content-type']).toMatch(/application\/json/);
-  });
+  it.each(['/repos/vercel/next.js', '/repos/socketio/socket.io'])(
+    'falls back to index.html for dotted client-side routes like %s',
+    async (url) => {
+      const res = await get(await start({ webDistDir }), url);
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toContain('id="root"');
+    },
+  );
+
+  it.each(['/assets/missing.js', '/missing.css'])(
+    'returns 404 for missing build asset %s instead of index.html',
+    async (url) => {
+      const res = await get(await start({ webDistDir }), url);
+      expect(res.statusCode).toBe(404);
+      expect(res.headers['content-type']).toMatch(/application\/json/);
+    },
+  );
 
   it('does not fall back for non-GET requests', async () => {
     const res = await get(await start({ webDistDir }), '/repos/x', { method: 'POST' });
