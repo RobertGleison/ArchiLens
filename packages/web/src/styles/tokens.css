@@ -1,0 +1,86 @@
+/*
+ * ArchiLens design tokens, taken from the Figma file (raw styles; it has no Figma variables).
+ *
+ * This is the only place colour, type, spacing, radius and size values are written. Components
+ * (CSS Modules) consume these variables; a test fails if hex/rgb literals appear anywhere else.
+ * Light theme only. There are no shadows: elevation is a 1px border (--border-default).
+ */
+:root {
+  /* Color: ink, teal, grey and white plus alpha tints. Do not add new hues. */
+  --color-ink: #353535;
+  --color-ink-muted: rgba(53, 53, 53, 0.7);
+  --color-ink-subtle-bg: rgba(53, 53, 53, 0.02);
+  --color-accent: #3c6e71;
+  --color-accent-tint: rgba(60, 110, 113, 0.05);
+  --color-border: #d9d9d9;
+  --color-surface: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: #d9d9d9;
+  --color-on-dark-border: rgba(255, 255, 255, 0.15);
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --line-height-default: 1.5;
+  --line-height-product-name: 1.4;
+  --line-height-sidebar: normal;
+
+  /* Type scale (default weight in brackets; see TokenPreview for usage) */
+  --font-size-display: 30px; /* [600] page title, stat tile value */
+  --font-size-display-sm: 28px; /* [600] large inline figure */
+  --font-size-title: 16px; /* [600] card/section title */
+  --font-size-body-lg: 14px; /* [600] emphasized notice line */
+  --font-size-body: 13px; /* [400; 600 active tab / option title] */
+  --font-size-body-sm: 12px; /* [400; 500 field label; 600 buttons, row identity] */
+  --font-size-caption: 11px; /* [400 or 500] secondary lines, pills, breadcrumb */
+  --font-size-overline: 10px; /* [400-600, uppercase] table column headers, footnotes */
+
+  /* Spacing scale (px value in the name) */
+  --space-2: 2px;
+  --space-3: 3px;
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-28: 28px;
+  --space-32: 32px;
+  --space-34: 34px;
+
+  --space-page: var(--space-32);
+  --space-card: var(--space-20);
+  --space-card-sm: var(--space-16);
+  --space-row: var(--space-12);
+
+  /* Radius */
+  --radius-xs: 3px; /* checkbox */
+  --radius-sm: 4px; /* pills, ⌘K hint */
+  --radius-md: 6px; /* buttons, inputs, nav items, option cards, notices */
+  --radius-lg: 8px; /* cards, stat tiles */
+  --radius-pill: 20px; /* switch track */
+  --radius-full: 50%; /* avatar */
+
+  /* Border (the only elevation) */
+  --border-width: 1px;
+  --border-default: var(--border-width) solid var(--color-border);
+
+  /* Control and layout sizes */
+  --size-control: 38px; /* button, input */
+  --size-control-sm: 30px; /* small button */
+  --size-nav-item: 42px;
+  --size-table-header: 36px;
+  --size-table-row-min: 60px;
+  --size-utility-bar: 68px;
+  --size-sidebar: 216px; /* sidebar width */
+}
