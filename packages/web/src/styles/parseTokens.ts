@@ -3,7 +3,7 @@ export interface Token {
   value: string;
 }
 
-/** Extracts `--name: value;` declarations (comments stripped) in source order. */
+/** Extracts `--name: value;` declarations (comments stripped) in source order; values are raw (var() unresolved). */
 export function parseTokens(css: string): Token[] {
   const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const tokens: Token[] = [];

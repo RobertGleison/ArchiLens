@@ -4,7 +4,6 @@ import {
   Check,
   CircleAlert,
   FolderGit2,
-  Github,
   LayoutDashboard,
   Network,
   Plus,
@@ -15,34 +14,45 @@ import type { CSSProperties, ReactNode } from 'react';
 import tokensCss from '../styles/tokens.css?raw';
 import { parseTokens, type Token } from '../styles/parseTokens';
 import { ICON_SIZE, type IconSize } from '../ui/icon';
+import { GithubIcon } from '../ui/icons/GithubIcon';
 import styles from './TokenPreview.module.css';
 
 const tokens = parseTokens(tokensCss);
 const group = (prefix: string): Token[] => tokens.filter((t) => t.name.startsWith(prefix));
 
-interface TypeStyle {
-  name: string;
-  weights: Array<'regular' | 'medium' | 'semibold'>;
+type Weight = 'regular' | 'medium' | 'semibold';
+
+interface TypeMeta {
+  weights: Weight[];
   uppercase?: boolean;
   example: string;
 }
 
-// Type scale from the Figma spec: size comes from --font-size-<name>, weights are the ones used.
-const TYPE_SCALE: TypeStyle[] = [
-  { name: 'display', weights: ['semibold'], example: 'Overview' },
-  { name: 'display-sm', weights: ['semibold'], example: '$1,240 / mo' },
-  { name: 'title', weights: ['semibold'], example: 'Recent reports' },
-  { name: 'body-lg', weights: ['semibold'], example: 'This report is out of date' },
-  { name: 'body', weights: ['regular', 'semibold'], example: 'Architecture overview' },
-  { name: 'body-sm', weights: ['regular', 'medium', 'semibold'], example: 'acme/checkout' },
-  { name: 'caption', weights: ['regular', 'medium'], example: 'Updated 2 hours ago' },
-  {
-    name: 'overline',
+/**
+ * Weights and sample text per type-scale entry. The entries themselves come from the
+ * `--font-size-*` tokens; a test asserts this map covers exactly those names.
+ */
+export const TYPE_META: Record<string, TypeMeta> = {
+  display: { weights: ['semibold'], example: 'Overview' },
+  'display-sm': { weights: ['semibold'], example: '$1,240 / mo' },
+  title: { weights: ['semibold'], example: 'Recent reports' },
+  'body-lg': { weights: ['semibold'], example: 'This report is out of date' },
+  body: { weights: ['regular', 'semibold'], example: 'Architecture overview' },
+  'body-sm': { weights: ['regular', 'medium', 'semibold'], example: 'acme/checkout' },
+  caption: { weights: ['regular', 'medium'], example: 'Updated 2 hours ago' },
+  overline: {
     weights: ['regular', 'medium', 'semibold'],
     uppercase: true,
     example: 'Pinned project',
   },
-];
+};
+
+const FALLBACK_META: TypeMeta = { weights: ['regular'], example: 'The quick brown fox' };
+
+const TYPE_SCALE = group('--font-size-').map((t) => {
+  const name = t.name.slice('--font-size-'.length);
+  return { name, ...(TYPE_META[name] ?? FALLBACK_META) };
+});
 
 const PREVIEW_ICONS = [
   LayoutDashboard,
@@ -54,9 +64,11 @@ const PREVIEW_ICONS = [
   Check,
   CircleAlert,
   Activity,
-  Github,
+  GithubIcon,
   Blocks,
 ];
+
+export const TOKEN_PREVIEW_ICON_COUNT = PREVIEW_ICONS.length;
 
 function TokenRow({ token, children }: { token: Token; children?: ReactNode }) {
   return (

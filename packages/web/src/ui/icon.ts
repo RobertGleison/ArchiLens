@@ -15,6 +15,10 @@
  *   Set `color` on the parent (or the icon's className) instead of passing `color`.
  * - Decorative icons get `aria-hidden`; icon-only buttons need an `aria-label` on the button.
  * - Keep lucide's default stroke width.
+ *
+ * Version pin: `lucide-react` is held at 0.x because 1.x removed brand icons (the design uses
+ * GitHub). Use `GithubIcon` from `./icons/GithubIcon` (same props shape, Simple Icons path)
+ * rather than lucide's deprecated `Github`, so the pin can be lifted later without UI changes.
  */
 export const ICON_SIZE = {
   /** Pills, checkbox check. */

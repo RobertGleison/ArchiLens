@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { ICON_SIZE } from '../ui/icon';
 import { parseTokens } from './parseTokens';
@@ -7,11 +10,12 @@ import tokensCss from './tokens.css?raw';
 const EXPECTED: Record<string, string> = {
   '--color-ink': '#353535',
   '--color-ink-muted': 'rgba(53, 53, 53, 0.7)',
-  '--color-ink-subtle-bg': 'rgba(53, 53, 53, 0.02)',
+  '--color-surface-subtle': 'rgba(53, 53, 53, 0.02)',
   '--color-accent': '#3c6e71',
   '--color-accent-tint': 'rgba(60, 110, 113, 0.05)',
   '--color-border': '#d9d9d9',
   '--color-surface': '#ffffff',
+  '--color-surface-inverse': 'var(--color-ink)',
   '--color-on-dark': '#ffffff',
   '--color-on-dark-muted': '#d9d9d9',
   '--color-on-dark-border': 'rgba(255, 255, 255, 0.15)',
@@ -20,8 +24,8 @@ const EXPECTED: Record<string, string> = {
   '--font-weight-medium': '500',
   '--font-weight-semibold': '600',
   '--line-height-default': '1.5',
-  '--line-height-product-name': '1.4',
-  '--line-height-sidebar': 'normal',
+  '--line-height-tight': '1.4',
+  '--line-height-normal': 'normal',
 
   '--font-size-display': '30px',
   '--font-size-display-sm': '28px',
@@ -47,11 +51,13 @@ const EXPECTED: Record<string, string> = {
   '--radius-sm': '4px',
   '--radius-md': '6px',
   '--radius-lg': '8px',
-  '--radius-pill': '20px',
+  '--radius-switch': '20px',
   '--radius-full': '50%',
 
   '--border-width': '1px',
   '--border-default': 'var(--border-width) solid var(--color-border)',
+  '--focus-ring': '2px solid var(--color-accent)',
+  '--focus-ring-offset': '2px',
 
   '--size-control': '38px',
   '--size-control-sm': '30px',
@@ -87,5 +93,23 @@ describe('design tokens', () => {
 
   it('defines the documented icon sizes', () => {
     expect(ICON_SIZE).toEqual({ pill: 12, input: 14, button: 15, card: 16, nav: 18, logo: 28 });
+  });
+
+  it('has a typography class for every type-scale token', () => {
+    const typography = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'typography.module.css'),
+      'utf8',
+    );
+    const classes = [...typography.matchAll(/^\.(\w+)\s*\{/gm)].map((m) => m[1]);
+    const camel = (s: string) => s.replace(/-(\w)/g, (_, c: string) => c.toUpperCase());
+    const expected = tokens
+      .filter((t) => t.name.startsWith('--font-size-'))
+      .map((t) => camel(t.name.slice('--font-size-'.length)));
+
+    expect(classes).toEqual(expected);
+    for (const name of expected) {
+      const kebab = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+      expect(typography).toContain(`font-size: var(--font-size-${kebab});`);
+    }
   });
 });

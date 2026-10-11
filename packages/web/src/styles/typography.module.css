@@ -1,0 +1,53 @@
+/*
+ * Text styles, one class per type-scale token in tokens.css (--font-size-<name>), carrying the
+ * default weight and line-height. Use them via `composes:` from component modules and override
+ * font-weight where the design uses another weight (see the type scale comments in tokens.css).
+ */
+.display {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+.displaySm {
+  font-size: var(--font-size-display-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+.bodyLg {
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+.body {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+.bodySm {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+.caption {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+.overline {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-default);
+  text-transform: uppercase;
+}

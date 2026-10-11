@@ -28,3 +28,9 @@ samp,
 pre {
   font-family: var(--font-mono);
 }
+
+/* Default keyboard focus indicator; components may restyle but must keep a visible ring. */
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

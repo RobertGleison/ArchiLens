@@ -2,18 +2,28 @@
  * ArchiLens design tokens, taken from the Figma file (raw styles; it has no Figma variables).
  *
  * This is the only place colour, type, spacing, radius and size values are written. Components
- * (CSS Modules) consume these variables; a test fails if hex/rgb literals appear anywhere else.
+ * (CSS Modules) consume these variables; a test fails if colour literals appear anywhere else.
  * Light theme only. There are no shadows: elevation is a 1px border (--border-default).
+ *
+ * Text styles: compose the classes in ./typography.module.css (e.g.
+ * `composes: title from '../styles/typography.module.css';`) instead of repeating
+ * size/weight/line-height.
+ *
+ * Adding, renaming or removing a token: update the exact-set test in ./tokens.test.ts too.
  */
 :root {
-  /* Color: ink, teal, grey and white plus alpha tints. Do not add new hues. */
+  /*
+   * Color: ink, teal, grey and white plus alpha tints. Do not add new hues. Error/failed states
+   * are deliberately monochrome (neutral pill + circle-alert icon), so there is no danger colour.
+   */
   --color-ink: #353535;
   --color-ink-muted: rgba(53, 53, 53, 0.7);
-  --color-ink-subtle-bg: rgba(53, 53, 53, 0.02);
+  --color-surface-subtle: rgba(53, 53, 53, 0.02); /* neutral pill, table header, ⌘K hint */
   --color-accent: #3c6e71;
   --color-accent-tint: rgba(60, 110, 113, 0.05);
   --color-border: #d9d9d9;
   --color-surface: #ffffff;
+  --color-surface-inverse: var(--color-ink); /* sidebar background */
   --color-on-dark: #ffffff;
   --color-on-dark-muted: #d9d9d9;
   --color-on-dark-border: rgba(255, 255, 255, 0.15);
@@ -26,9 +36,9 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
 
-  --line-height-default: 1.5;
-  --line-height-product-name: 1.4;
-  --line-height-sidebar: normal;
+  --line-height-default: 1.5; /* all text unless noted */
+  --line-height-tight: 1.4; /* product name */
+  --line-height-normal: normal; /* sidebar text */
 
   /* Type scale (default weight in brackets; see TokenPreview for usage) */
   --font-size-display: 30px; /* [600] page title, stat tile value */
@@ -68,12 +78,16 @@
   --radius-sm: 4px; /* pills, ⌘K hint */
   --radius-md: 6px; /* buttons, inputs, nav items, option cards, notices */
   --radius-lg: 8px; /* cards, stat tiles */
-  --radius-pill: 20px; /* switch track */
+  --radius-switch: 20px; /* switch track (pills use --radius-sm) */
   --radius-full: 50%; /* avatar */
 
   /* Border (the only elevation) */
   --border-width: 1px;
   --border-default: var(--border-width) solid var(--color-border);
+
+  /* Focus (keyboard only; applied globally via :focus-visible in base.css) */
+  --focus-ring: 2px solid var(--color-accent);
+  --focus-ring-offset: 2px;
 
   /* Control and layout sizes */
   --size-control: 38px; /* button, input */
