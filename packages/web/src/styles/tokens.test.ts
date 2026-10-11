@@ -100,7 +100,7 @@ describe('design tokens', () => {
       join(dirname(fileURLToPath(import.meta.url)), 'typography.module.css'),
       'utf8',
     );
-    const classes = [...typography.matchAll(/^\.(\w+)\s*\{/gm)].map((m) => m[1]);
+    const classes = [...typography.matchAll(/^:where\(\.(\w+)\)\s*\{/gm)].map((m) => m[1]);
     const camel = (s: string) => s.replace(/-(\w)/g, (_, c: string) => c.toUpperCase());
     const expected = tokens
       .filter((t) => t.name.startsWith('--font-size-'))
