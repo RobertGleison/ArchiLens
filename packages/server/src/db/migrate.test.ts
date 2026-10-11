@@ -102,6 +102,52 @@ describe('runMigrations', () => {
     expect(() => runMigrations(db, [a, b])).toThrow(/versions must increase/);
   });
 
+  describe('migrations with foreignKeys: false (table rebuilds)', () => {
+    const setup: Migration = {
+      version: 1,
+      name: 'setup',
+      sql: `CREATE TABLE parent (id INTEGER PRIMARY KEY);
+            CREATE TABLE child (id INTEGER PRIMARY KEY,
+                                parent_id INTEGER NOT NULL REFERENCES parent (id) ON DELETE CASCADE);
+            INSERT INTO parent VALUES (1); INSERT INTO child VALUES (10, 1);`,
+    };
+    const rebuildParent = `CREATE TABLE new_parent (id INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '');
+      INSERT INTO new_parent (id) SELECT id FROM parent;
+      DROP TABLE parent;
+      ALTER TABLE new_parent RENAME TO parent;`;
+
+    it('rebuilds a referenced table without cascading deletes, then re-enables FKs', () => {
+      runMigrations(db, [setup]);
+      runMigrations(db, [
+        setup,
+        { version: 2, name: 'rebuild', sql: rebuildParent, foreignKeys: false },
+      ]);
+
+      expect(db.prepare('SELECT count(*) FROM child').pluck().get()).toBe(1);
+      expect(db.pragma('foreign_keys', { simple: true })).toBe(1);
+    });
+
+    it('rolls back and re-enables FKs when the rebuild leaves violations', () => {
+      runMigrations(db, [setup]);
+      const broken: Migration = {
+        version: 2,
+        name: 'broken',
+        sql: `${rebuildParent} DELETE FROM parent;`,
+        foreignKeys: false,
+      };
+
+      expect(() => runMigrations(db, [setup, broken])).toThrow(/foreign key violation/);
+      expect(db.prepare('SELECT count(*) FROM parent').pluck().get()).toBe(1);
+      expect(appliedVersions(db).map((r) => r.version)).toEqual([1]);
+      expect(db.pragma('foreign_keys', { simple: true })).toBe(1);
+    });
+
+    it('shows why the flag exists: with FKs on, the same rebuild cascades', () => {
+      runMigrations(db, [setup, { version: 2, name: 'rebuild', sql: rebuildParent }]);
+      expect(db.prepare('SELECT count(*) FROM child').pluck().get()).toBe(0);
+    });
+  });
+
   it('enforces foreign keys', () => {
     runMigrations(db);
     expect(() =>

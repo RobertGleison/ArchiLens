@@ -145,28 +145,37 @@ export function listJobs(db: Db, filter: { target?: Target; limit?: number } = {
 }
 
 /**
- * Moves a job to `status`. Entering `running` stamps `started_at`; entering a
- * terminal status stamps `finished_at`. `error` is stored when given.
+ * Moves a job to `status`.
+ * - `running` stamps `started_at`; terminal statuses stamp `finished_at`.
+ * - `queued`/`running` (e.g. a retry) clear `finished_at` and `error`;
+ *   `queued` also clears `started_at`.
+ * - `error` is stored when given (ignored when entering queued/running).
+ * - `from`: only transition if the job currently has that status (compare-and-set);
+ *   returns undefined when the job is missing or its status differs.
  */
 export function updateJobStatus(
   db: Db,
   id: number,
   status: JobStatus,
-  options: { error?: string | null } = {},
+  options: { error?: string | null; from?: JobStatus } = {},
 ): Job | undefined {
   const row = db
     .prepare(
       `UPDATE jobs SET
          status = @status,
-         started_at = CASE WHEN @status = 'running' THEN ${NOW_SQL} ELSE started_at END,
-         finished_at = CASE WHEN @status IN ('succeeded', 'failed', 'cancelled')
-                            THEN ${NOW_SQL} ELSE finished_at END,
-         error = CASE WHEN @hasError THEN @error ELSE error END
-       WHERE id = @id RETURNING *`,
+         started_at = CASE @status WHEN 'running' THEN ${NOW_SQL}
+                                   WHEN 'queued' THEN NULL ELSE started_at END,
+         finished_at = CASE WHEN @status IN ('queued', 'running') THEN NULL
+                            ELSE ${NOW_SQL} END,
+         error = CASE WHEN @status IN ('queued', 'running') THEN NULL
+                      WHEN @hasError THEN @error ELSE error END
+       WHERE id = @id AND (@from IS NULL OR status = @from)
+       RETURNING *`,
     )
     .get({
       id,
       status,
+      from: options.from ?? null,
       hasError: options.error === undefined ? 0 : 1,
       error: options.error ?? null,
     }) as JobRow | undefined;

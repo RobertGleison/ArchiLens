@@ -6,6 +6,13 @@ export interface Migration {
   version: number;
   name: string;
   sql: string;
+  /**
+   * Set to false for migrations that rebuild tables (see migrations/index.ts).
+   * Foreign keys are switched off for the migration (the pragma is a no-op
+   * inside a transaction, so this happens before BEGIN), integrity is verified
+   * with `PRAGMA foreign_key_check` before commit, and they are switched back on.
+   */
+  foreignKeys?: false;
 }
 
 /**
@@ -35,13 +42,40 @@ export function runMigrations(db: Db, migrations: readonly Migration[] = MIGRATI
 
   for (const migration of migrations) {
     if (applied.has(migration.version)) continue;
-    db.transaction(() => {
-      db.exec(migration.sql);
-      record.run(migration.version, migration.name);
-    })();
+    applyOne(db, migration, () => record.run(migration.version, migration.name));
     newlyApplied.push(migration.version);
   }
   return newlyApplied;
+}
+
+function applyOne(db: Db, migration: Migration, recordApplied: () => void): void {
+  const run = db.transaction(() => {
+    db.exec(migration.sql);
+    if (migration.foreignKeys === false) assertForeignKeysIntact(db, migration);
+    recordApplied();
+  });
+
+  if (migration.foreignKeys !== false) {
+    run.immediate();
+    return;
+  }
+  db.pragma('foreign_keys = OFF');
+  try {
+    run.immediate();
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+}
+
+function assertForeignKeysIntact(db: Db, migration: Migration): void {
+  const violations = db.pragma('foreign_key_check') as { table: string; parent: string }[];
+  if (violations.length > 0) {
+    const first = violations[0]!;
+    throw new Error(
+      `Migration "${migration.name}" left ${violations.length} foreign key violation(s), ` +
+        `e.g. ${first.table} -> ${first.parent}`,
+    );
+  }
 }
 
 function assertOrdered(migrations: readonly Migration[]): void {

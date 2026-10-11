@@ -19,6 +19,8 @@ export interface Repo {
   llmConsentGrantedAt: string | null;
   lastScannedSha: string | null;
   lastScannedAt: string | null;
+  /** Job that last advanced `lastScannedSha`. */
+  lastScannedJobId: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +64,7 @@ interface RepoRow {
   llm_consent_granted_at: string | null;
   last_scanned_sha: string | null;
   last_scanned_at: string | null;
+  last_scanned_job_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +94,7 @@ function toRepo(row: RepoRow): Repo {
     llmConsentGrantedAt: row.llm_consent_granted_at,
     lastScannedSha: row.last_scanned_sha,
     lastScannedAt: row.last_scanned_at,
+    lastScannedJobId: row.last_scanned_job_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -160,16 +164,34 @@ export function deleteRepo(db: Db, id: number): boolean {
 }
 
 /**
- * Moves `last_scanned_sha` forward to the `commit_to` of a successfully
- * ingested repo scan. This is the only way the column changes: it requires a
- * `succeeded` baseline/incremental job for the repo, so failed, running or
- * backfill jobs can never move it.
+ * Moves the repo's scan cursor (`last_scanned_sha`) to the `commit_to` of a
+ * successfully ingested scan. This is the only code that writes the cursor.
+ *
+ * Rules (checked atomically in the UPDATE, so concurrent callers cannot race):
+ * - the job must be a `succeeded` baseline/incremental repo job with `commit_to`
+ *   (backfill jobs scan history and never move the cursor);
+ * - the job must be newer than the job that last moved the cursor
+ *   (`job.id > last_scanned_job_id`; job ids are AUTOINCREMENT, so creation
+ *   order is total). An older baseline that finishes late cannot rewind it;
+ * - an incremental job must continue from the current cursor
+ *   (`commit_from = last_scanned_sha`, or the cursor is still unset).
+ *
+ * Ingest must call this in the same `db.transaction` as createReport,
+ * createModelSnapshot and updateJobStatus(..., 'succeeded'), so the cursor
+ * never moves without the artifacts that justify it (and vice versa).
  */
 export function advanceLastScannedSha(db: Db, jobId: number): Repo {
   const job = db
-    .prepare('SELECT repo_id, mode, status, commit_to FROM jobs WHERE id = ?')
+    .prepare('SELECT repo_id, mode, status, commit_from, commit_to FROM jobs WHERE id = ?')
     .get(jobId) as
-    { repo_id: number | null; mode: string; status: string; commit_to: string | null } | undefined;
+    | {
+        repo_id: number | null;
+        mode: string;
+        status: string;
+        commit_from: string | null;
+        commit_to: string | null;
+      }
+    | undefined;
 
   if (!job) throw new Error(`Job ${jobId} not found`);
   if (job.repo_id === null) throw new Error(`Job ${jobId} is not a repo scan`);
@@ -184,9 +206,26 @@ export function advanceLastScannedSha(db: Db, jobId: number): Repo {
   const row = db
     .prepare(
       `UPDATE repos
-       SET last_scanned_sha = ?, last_scanned_at = ${NOW_SQL}, updated_at = ${NOW_SQL}
-       WHERE id = ? RETURNING *`,
+       SET last_scanned_sha = @commitTo, last_scanned_job_id = @jobId,
+           last_scanned_at = ${NOW_SQL}, updated_at = ${NOW_SQL}
+       WHERE id = @repoId
+         AND (last_scanned_job_id IS NULL OR last_scanned_job_id < @jobId)
+         AND (@mode = 'baseline' OR last_scanned_sha IS NULL OR last_scanned_sha = @commitFrom)
+       RETURNING *`,
     )
-    .get(job.commit_to, job.repo_id) as RepoRow;
+    .get({
+      repoId: job.repo_id,
+      jobId,
+      mode: job.mode,
+      commitFrom: job.commit_from,
+      commitTo: job.commit_to,
+    }) as RepoRow | undefined;
+
+  if (!row) {
+    throw new Error(
+      `Job ${jobId} cannot advance repo ${job.repo_id}: a newer scan already moved the cursor ` +
+        `or the incremental range does not start at the current last_scanned_sha`,
+    );
+  }
   return toRepo(row);
 }

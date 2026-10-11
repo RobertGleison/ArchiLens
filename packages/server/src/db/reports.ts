@@ -1,5 +1,5 @@
 import type { Db } from './connection.js';
-import { targetParams, targetWhere, type Target } from './target.js';
+import { targetWhere, type Target } from './target.js';
 
 export interface Report {
   id: number;
@@ -12,11 +12,12 @@ export interface Report {
   createdAt: string;
 }
 
-export type NewReport = Target & {
+/** The repo/project target is copied from the producing job. */
+export interface NewReport {
   jobId: number;
   reportPath: string;
   summary?: string | null;
-};
+}
 
 export interface ModelSnapshot {
   id: number;
@@ -29,11 +30,12 @@ export interface ModelSnapshot {
   createdAt: string;
 }
 
-export type NewModelSnapshot = Target & {
+/** The repo/project target is copied from the producing job. */
+export interface NewModelSnapshot {
   jobId: number;
   modelPath: string;
   commitSha?: string | null;
-};
+}
 
 interface ReportRow {
   id: number;
@@ -83,15 +85,15 @@ export function createReport(db: Db, input: NewReport): Report {
   const row = db
     .prepare(
       `INSERT INTO reports (job_id, repo_id, project_id, report_path, summary)
-       VALUES (@jobId, @repoId, @projectId, @reportPath, @summary)
+       SELECT id, repo_id, project_id, @reportPath, @summary FROM jobs WHERE id = @jobId
        RETURNING *`,
     )
     .get({
       jobId: input.jobId,
-      ...targetParams(input),
       reportPath: input.reportPath,
       summary: input.summary ?? null,
-    }) as ReportRow;
+    }) as ReportRow | undefined;
+  if (!row) throw new Error(`Job ${input.jobId} not found`);
   return toReport(row);
 }
 
@@ -123,15 +125,15 @@ export function createModelSnapshot(db: Db, input: NewModelSnapshot): ModelSnaps
   const row = db
     .prepare(
       `INSERT INTO model_snapshots (job_id, repo_id, project_id, model_path, commit_sha)
-       VALUES (@jobId, @repoId, @projectId, @modelPath, @commitSha)
+       SELECT id, repo_id, project_id, @modelPath, @commitSha FROM jobs WHERE id = @jobId
        RETURNING *`,
     )
     .get({
       jobId: input.jobId,
-      ...targetParams(input),
       modelPath: input.modelPath,
       commitSha: input.commitSha ?? null,
-    }) as ModelSnapshotRow;
+    }) as ModelSnapshotRow | undefined;
+  if (!row) throw new Error(`Job ${input.jobId} not found`);
   return toModelSnapshot(row);
 }
 

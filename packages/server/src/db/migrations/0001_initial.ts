@@ -23,6 +23,9 @@ CREATE TABLE repos (
   llm_consent_granted_at TEXT,
   last_scanned_sha       TEXT,
   last_scanned_at        TEXT,
+  -- Job that last moved the cursor. Deliberately no FK: deleting job history
+  -- must not reset it (jobs.id is AUTOINCREMENT, so ids are never reused).
+  last_scanned_job_id    INTEGER,
   created_at             TEXT    NOT NULL DEFAULT ${NOW},
   updated_at             TEXT    NOT NULL DEFAULT ${NOW}
 ) STRICT;
@@ -59,7 +62,7 @@ CREATE TABLE schedules (
 ) STRICT;
 
 CREATE TABLE jobs (
-  id            INTEGER PRIMARY KEY,
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
   repo_id       INTEGER REFERENCES repos (id) ON DELETE CASCADE,
   project_id    INTEGER REFERENCES projects (id) ON DELETE CASCADE,
   mode          TEXT    NOT NULL CHECK (mode IN ('baseline', 'incremental', 'backfill', 'project')),

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, seedJob, seedRepo } from '../test/db.js';
 import type { Db } from './connection.js';
-import { createJob, updateJobStatus } from './jobs.js';
+import { createJob, deleteJob, updateJobStatus } from './jobs.js';
 import {
   advanceLastScannedSha,
   createRepo,
@@ -45,6 +45,7 @@ describe('repos', () => {
       llmConsentGrantedAt: null,
       lastScannedSha: null,
       lastScannedAt: null,
+      lastScannedJobId: null,
     });
     expect(repo.createdAt).toMatch(ISO);
     expect(getRepo(db, repo.id)).toEqual(repo);
@@ -133,6 +134,64 @@ describe('advanceLastScannedSha', () => {
       expect(getRepo(db, repo.id)?.lastScannedSha).toBeNull();
     },
   );
+
+  it('refuses an older job that finishes after a newer one (no rewind)', () => {
+    const repo = seedRepo(db);
+    const baseline = createJob(db, { repoId: repo.id, mode: 'baseline', commitTo: 'aaa' });
+    const incr = createJob(db, {
+      repoId: repo.id,
+      mode: 'incremental',
+      commitFrom: 'aaa',
+      commitTo: 'bbb',
+    });
+    updateJobStatus(db, incr.id, 'succeeded');
+    updateJobStatus(db, baseline.id, 'succeeded');
+
+    expect(advanceLastScannedSha(db, incr.id).lastScannedSha).toBe('bbb');
+    expect(() => advanceLastScannedSha(db, baseline.id)).toThrow(/cannot advance/);
+    expect(getRepo(db, repo.id)).toMatchObject({
+      lastScannedSha: 'bbb',
+      lastScannedJobId: incr.id,
+    });
+  });
+
+  it('lets a newer baseline reset the cursor', () => {
+    const repo = seedRepo(db);
+    const first = seedJob(db, { repoId: repo.id, mode: 'baseline', commitTo: 'aaa' });
+    const second = seedJob(db, { repoId: repo.id, mode: 'baseline', commitTo: 'zzz' });
+    updateJobStatus(db, first.id, 'succeeded');
+    updateJobStatus(db, second.id, 'succeeded');
+
+    advanceLastScannedSha(db, first.id);
+    expect(advanceLastScannedSha(db, second.id).lastScannedSha).toBe('zzz');
+  });
+
+  it('refuses an incremental job that does not start at the current cursor', () => {
+    const repo = seedRepo(db);
+    const base = seedJob(db, { repoId: repo.id, mode: 'baseline', commitTo: 'aaa' });
+    const gap = seedJob(db, {
+      repoId: repo.id,
+      mode: 'incremental',
+      commitFrom: 'xxx',
+      commitTo: 'yyy',
+    });
+    updateJobStatus(db, base.id, 'succeeded');
+    updateJobStatus(db, gap.id, 'succeeded');
+    advanceLastScannedSha(db, base.id);
+
+    expect(() => advanceLastScannedSha(db, gap.id)).toThrow(/cannot advance/);
+    expect(getRepo(db, repo.id)?.lastScannedSha).toBe('aaa');
+  });
+
+  it('does not reuse job ids after deleting the latest job', () => {
+    const repo = seedRepo(db);
+    const job = seedJob(db, { repoId: repo.id, mode: 'baseline', commitTo: 'aaa' });
+    updateJobStatus(db, job.id, 'succeeded');
+    advanceLastScannedSha(db, job.id);
+    deleteJob(db, job.id);
+
+    expect(seedJob(db, { repoId: repo.id }).id).toBeGreaterThan(job.id);
+  });
 
   it('refuses backfill jobs, jobs without commit_to and unknown jobs', () => {
     const backfill = seedJob(db, { mode: 'backfill', commitTo: 'old' });

@@ -39,6 +39,5 @@ export function seedJob(db: Db, input: Partial<NewJob> = {}): Job {
 
 /** A report for a fresh repo job. */
 export function seedReport(db: Db): Report {
-  const job = seedJob(db);
-  return createReport(db, { jobId: job.id, repoId: job.repoId!, reportPath: 'reports/1.md' });
+  return createReport(db, { jobId: seedJob(db).id, reportPath: 'reports/1.md' });
 }

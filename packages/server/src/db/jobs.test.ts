@@ -66,6 +66,14 @@ describe('jobs', () => {
     expect(() => createJob(db, { repoId: repo.id, mode: 'project' })).toThrow(/CHECK/);
   });
 
+  it('does not type-check a job with both a repo and a project target', () => {
+    // Compile-time check (enforced by `npm run typecheck`); never executed.
+    const both = () =>
+      // @ts-expect-error Target is an exclusive union
+      createJob(db, { repoId: 1, projectId: 1, mode: 'baseline' });
+    expect(typeof both).toBe('function');
+  });
+
   it('rejects invalid modes, statuses and attempts', () => {
     expect(() => seedJob(db, { mode: 'nightly' as never })).toThrow(/CHECK/);
     expect(() => seedJob(db, { attempt: 0 })).toThrow(/CHECK/);
@@ -95,6 +103,30 @@ describe('jobs', () => {
     updateJobStatus(db, job.id, 'failed', { error: 'boom' });
     expect(updateJobStatus(db, job.id, 'cancelled')?.error).toBe('boom');
     expect(updateJobStatus(db, job.id, 'cancelled', { error: null })?.error).toBeNull();
+  });
+
+  it('only transitions from the expected status when `from` is given', () => {
+    const job = seedJob(db);
+
+    expect(updateJobStatus(db, job.id, 'running', { from: 'queued' })?.status).toBe('running');
+    expect(updateJobStatus(db, job.id, 'running', { from: 'queued' })).toBeUndefined();
+    expect(updateJobStatus(db, job.id, 'succeeded', { from: 'cancelled' })).toBeUndefined();
+    expect(getJob(db, job.id)?.status).toBe('running');
+    expect(updateJobStatus(db, 999, 'running', { from: 'queued' })).toBeUndefined();
+  });
+
+  it('clears finished_at and error when a job is re-queued or re-run', () => {
+    const job = seedJob(db);
+    updateJobStatus(db, job.id, 'running');
+    updateJobStatus(db, job.id, 'failed', { error: 'boom' });
+
+    const requeued = updateJobStatus(db, job.id, 'queued');
+    expect(requeued).toMatchObject({ error: null, finishedAt: null, startedAt: null });
+
+    updateJobStatus(db, job.id, 'failed', { error: 'again' });
+    const rerun = updateJobStatus(db, job.id, 'running');
+    expect(rerun).toMatchObject({ error: null, finishedAt: null });
+    expect(rerun?.startedAt).not.toBeNull();
   });
 
   it('records token usage and patches fields', () => {

@@ -29,7 +29,6 @@ describe('reports', () => {
     const job = seedJob(db, { repoId: repo.id });
     const report = createReport(db, {
       jobId: job.id,
-      repoId: repo.id,
       reportPath: 'repos/1/reports/1/report.md',
       summary: 'Added a queue',
     });
@@ -45,34 +44,29 @@ describe('reports', () => {
     expect(getReportByJob(db, job.id)).toEqual(report);
   });
 
-  it('creates project reports', () => {
+  it('takes the project target from a project job', () => {
     const p = seedProject(db);
     const job = seedJob(db, { projectId: p.id, mode: 'project' });
-    const report = createReport(db, { jobId: job.id, projectId: p.id, reportPath: 'p.md' });
+    const report = createReport(db, { jobId: job.id, reportPath: 'p.md' });
+    expect(report).toMatchObject({ repoId: null, projectId: p.id });
     expect(listReports(db, { projectId: p.id })).toEqual([report]);
   });
 
   it('allows one report per job and requires an existing job', () => {
     const job = seedJob(db);
-    createReport(db, { jobId: job.id, repoId: job.repoId!, reportPath: 'a.md' });
-    expect(() =>
-      createReport(db, { jobId: job.id, repoId: job.repoId!, reportPath: 'b.md' }),
-    ).toThrow(/UNIQUE/);
-    expect(() => createReport(db, { jobId: 999, repoId: job.repoId!, reportPath: 'c.md' })).toThrow(
-      /FOREIGN KEY/,
-    );
+    createReport(db, { jobId: job.id, reportPath: 'a.md' });
+    expect(() => createReport(db, { jobId: job.id, reportPath: 'b.md' })).toThrow(/UNIQUE/);
+    expect(() => createReport(db, { jobId: 999, reportPath: 'c.md' })).toThrow(/not found/);
   });
 
   it('lists reports for a target newest first with a limit', () => {
     const repo = seedRepo(db);
     const r1 = createReport(db, {
       jobId: seedJob(db, { repoId: repo.id }).id,
-      repoId: repo.id,
       reportPath: '1.md',
     });
     const r2 = createReport(db, {
       jobId: seedJob(db, { repoId: repo.id }).id,
-      repoId: repo.id,
       reportPath: '2.md',
     });
 
@@ -86,9 +80,9 @@ describe('reports', () => {
     const j1 = seedJob(db, { repoId: repo.id });
     const j2 = seedJob(db, { repoId: repo.id });
     const j3 = seedJob(db, { repoId: repo.id });
-    const r1 = createReport(db, { jobId: j1.id, repoId: repo.id, reportPath: '1.md' });
-    const r2 = createReport(db, { jobId: j2.id, repoId: repo.id, reportPath: '2.md' });
-    const r3 = createReport(db, { jobId: j3.id, repoId: repo.id, reportPath: '3.md' });
+    const r1 = createReport(db, { jobId: j1.id, reportPath: '1.md' });
+    const r2 = createReport(db, { jobId: j2.id, reportPath: '2.md' });
+    const r3 = createReport(db, { jobId: j3.id, reportPath: '3.md' });
 
     expect(deleteReport(db, r1.id)).toBe(true);
     deleteJob(db, j2.id);
@@ -103,13 +97,11 @@ describe('model_snapshots', () => {
     const repo = seedRepo(db);
     const s1 = createModelSnapshot(db, {
       jobId: seedJob(db, { repoId: repo.id }).id,
-      repoId: repo.id,
       modelPath: 'repos/1/models/1.json',
       commitSha: 'aaa',
     });
     const s2 = createModelSnapshot(db, {
       jobId: seedJob(db, { repoId: repo.id }).id,
-      repoId: repo.id,
       modelPath: 'repos/1/models/2.json',
     });
 
@@ -118,6 +110,16 @@ describe('model_snapshots', () => {
     expect(getLatestModelSnapshot(db, { repoId: repo.id })).toEqual(s2);
     expect(listModelSnapshots(db, { repoId: repo.id }).map((s) => s.id)).toEqual([s2.id, s1.id]);
     expect(getLatestModelSnapshot(db, { repoId: seedRepo(db).id })).toBeUndefined();
+  });
+
+  it('takes its target from the job and requires an existing job', () => {
+    const p = seedProject(db);
+    const job = seedJob(db, { projectId: p.id, mode: 'project' });
+    expect(createModelSnapshot(db, { jobId: job.id, modelPath: 'm.json' })).toMatchObject({
+      repoId: null,
+      projectId: p.id,
+    });
+    expect(() => createModelSnapshot(db, { jobId: 999, modelPath: 'm.json' })).toThrow(/not found/);
   });
 
   it.each(['reports', 'model_snapshots'])(
