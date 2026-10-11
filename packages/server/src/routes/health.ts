@@ -2,8 +2,8 @@ import type { HealthResponse } from '@archilens/shared';
 import type { FastifyInstance } from 'fastify';
 import { SERVER_VERSION } from '../version.js';
 
-export function registerHealthRoute(app: FastifyInstance, dataDir: string): void {
-  app.get('/api/health', async (): Promise<HealthResponse> => {
+export function registerHealthRoute(api: FastifyInstance, dataDir: string): void {
+  api.get('/health', async (): Promise<HealthResponse> => {
     return { status: 'ok', version: SERVER_VERSION, dataDir };
   });
 }

@@ -7,7 +7,7 @@ export const DEFAULT_PORT = 4317;
 export const LOOPBACK_HOST = '127.0.0.1';
 
 export interface ServerConfig {
-  host: string;
+  host: typeof LOOPBACK_HOST;
   port: number;
   /** Absolute path of the only directory the app writes to at runtime. */
   dataDir: string;

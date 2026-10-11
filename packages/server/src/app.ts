@@ -1,7 +1,8 @@
 import { fileURLToPath } from 'node:url';
 import Fastify, { type FastifyInstance } from 'fastify';
 import type { ServerConfig } from './config.js';
-import { registerHealthRoute } from './routes/health.js';
+import { registerHostGuard } from './host-guard.js';
+import { apiRoutes } from './routes/api.js';
 import { registerWebUi } from './web-ui.js';
 
 /** Location of the web build relative to this module (works from src/ and dist/). */
@@ -21,7 +22,8 @@ export async function buildApp({
 }: BuildAppOptions): Promise<FastifyInstance> {
   const app = Fastify({ logger });
 
-  registerHealthRoute(app, config.dataDir);
+  registerHostGuard(app, config.port);
+  await app.register(apiRoutes, { prefix: '/api', dataDir: config.dataDir });
   const servingUi = await registerWebUi(app, webDistDir);
   if (!servingUi) {
     app.log.info(`No web build at ${webDistDir}; serving API only`);

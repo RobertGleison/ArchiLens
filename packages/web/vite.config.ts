@@ -10,7 +10,8 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     proxy: {
-      '/api': `http://127.0.0.1:${serverPort}`,
+      // changeOrigin rewrites Host to the server's, which its DNS-rebinding guard requires.
+      '/api': { target: `http://127.0.0.1:${serverPort}`, changeOrigin: true },
     },
   },
 });

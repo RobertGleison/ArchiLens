@@ -35,4 +35,25 @@ describe('HealthStatus', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/HTTP 500/);
   });
+
+  it('shows an error when the request itself fails (network error)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    render(<HealthStatus />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Failed to fetch/);
+  });
+
+  it('aborts the in-flight request on unmount', () => {
+    const fetchMock = vi.fn().mockReturnValue(new Promise(() => {}));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { unmount } = render(<HealthStatus />);
+    const { signal } = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(signal?.aborted).toBe(false);
+
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
+  });
 });
