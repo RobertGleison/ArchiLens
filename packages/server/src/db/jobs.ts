@@ -1,9 +1,10 @@
+import type { JobStatus } from '@archilens/shared';
 import type { Db } from './connection.js';
 import { NOW_SQL, setClause } from './sql.js';
 import { targetParams, targetWhere, type Target } from './target.js';
 
 export type JobMode = 'baseline' | 'incremental' | 'backfill' | 'project';
-export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+export type { JobStatus };
 
 /** A scan of one repo, or (mode `project`) a consolidated project report. */
 export interface Job {

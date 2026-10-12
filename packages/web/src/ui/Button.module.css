@@ -35,8 +35,8 @@
   color: var(--color-on-dark);
 }
 
-.primary:hover:not(:disabled),
-.primary:active:not(:disabled) {
+.primary:hover:not(:disabled, [aria-disabled='true']),
+.primary:active:not(:disabled, [aria-disabled='true']) {
   border-color: var(--color-accent-hover);
   background: var(--color-accent-hover);
 }
@@ -47,17 +47,19 @@
   color: var(--color-ink);
 }
 
-.secondary:hover:not(:disabled),
-.secondary:active:not(:disabled) {
+.secondary:hover:not(:disabled, [aria-disabled='true']),
+.secondary:active:not(:disabled, [aria-disabled='true']) {
   background: var(--color-surface-subtle);
 }
 
-.button:disabled {
+.button:disabled,
+.button[aria-disabled='true'] {
   cursor: not-allowed;
 }
 
-/* Loading also sets `disabled` but stays at full opacity; the spinner carries the state. */
-.button:disabled:not([aria-busy='true']) {
+/* Loading (aria-disabled + aria-busy) stays at full opacity; the spinner carries the state. */
+.button:disabled,
+.button[aria-disabled='true']:not([aria-busy='true']) {
   opacity: var(--opacity-disabled);
 }
 

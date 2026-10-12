@@ -1,5 +1,5 @@
 /*
- * Status pill / badge, Figma 3:12752 (accent) and 3:12779 (neutral); also the ⌘K key hint.
+ * Status pill / badge, Figma 3:12752 (accent) and 3:12779 (neutral); KeyHint composes it.
  * No border. There are no red/amber tones: failures use the neutral pill with circle-alert.
  */
 .pill {

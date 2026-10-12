@@ -2,7 +2,7 @@ import { Bell, CircleHelp, Search } from 'lucide-react';
 import { useRef } from 'react';
 import { ICON_SIZE } from '../ui/icon';
 import { IconButton } from '../ui/IconButton';
-import { KeyHint } from '../ui/StatusPill';
+import { KeyHint } from '../ui/KeyHint';
 import { formatRelativeTime } from './formatRelativeTime';
 import { isApplePlatform } from './platform';
 import styles from './UtilityBar.module.css';

@@ -14,7 +14,10 @@ export interface StatusPillProps extends ComponentPropsWithoutRef<'span'> {
   children: ReactNode;
 }
 
-/** Status pill / badge (Figma 3:12752, 3:12779). For scan states use `scanStatusToPill()`. */
+/**
+ * Status pill / badge (Figma 3:12752, 3:12779). For scan states use `scanStatusToPill()` from
+ * `scans/scanStatusPill`.
+ */
 export const StatusPill = forwardRef<HTMLSpanElement, StatusPillProps>(function StatusPill(
   { tone = 'neutral', icon: Icon, className, children, ...rest },
   ref,
@@ -26,10 +29,3 @@ export const StatusPill = forwardRef<HTMLSpanElement, StatusPillProps>(function 
     </span>
   );
 });
-
-export type KeyHintProps = ComponentPropsWithoutRef<'kbd'>;
-
-/** Keyboard shortcut chip (e.g. "⌘ K"): a neutral pill rendered as `<kbd>`. */
-export function KeyHint({ className, ...rest }: KeyHintProps) {
-  return <kbd {...rest} className={cx(styles.pill, styles.neutral, className)} />;
-}

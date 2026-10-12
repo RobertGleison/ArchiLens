@@ -22,12 +22,14 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import type { RepoScanState } from '@archilens/shared';
+import { SCAN_STATUS_PILLS } from '../scans/scanStatusPill';
 import { Button, type ButtonSize, type ButtonVariant } from '../ui/Button';
 import { IconButton } from '../ui/IconButton';
+import { KeyHint } from '../ui/KeyHint';
 import { GithubIcon } from '../ui/icons/GithubIcon';
-import { SCAN_STATUSES, scanStatusToPill } from '../ui/scanStatus';
 import { Spinner } from '../ui/Spinner';
-import { KeyHint, StatusPill } from '../ui/StatusPill';
+import { StatusPill } from '../ui/StatusPill';
 import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
 
@@ -94,7 +96,7 @@ export function ComponentPreview() {
           <Button variant="primary" icon={Play}>
             Run scan
           </Button>
-          <Button href="https://github.com" target="_blank" rel="noreferrer" icon={ExternalLink}>
+          <Button href="https://github.com" external icon={ExternalLink}>
             Open in GitHub
           </Button>
           <Button icon={GithubIcon}>Manage GitHub connection</Button>
@@ -140,10 +142,10 @@ export function ComponentPreview() {
           <TextLink to="/projects/commerce-platform">Commerce platform</TextLink>
         </Row>
         <Row label="inline / md">
-          <TextLink variant="inline" to="/repositories" trailing="arrow">
+          <TextLink variant="inline" to="/repositories" arrow>
             All 8 repositories
           </TextLink>
-          <TextLink variant="inline" to="/history" trailing="arrow">
+          <TextLink variant="inline" to="/history" arrow>
             View job
           </TextLink>
           <TextLink variant="inline" onClick={noop}>
@@ -151,7 +153,7 @@ export function ComponentPreview() {
           </TextLink>
         </Row>
         <Row label="inline / sm">
-          <TextLink variant="inline" size="sm" to="/reports" trailing="arrow">
+          <TextLink variant="inline" size="sm" to="/reports" arrow>
             Open report
           </TextLink>
           <span className={styles.body}>
@@ -165,23 +167,17 @@ export function ComponentPreview() {
           </span>
         </Row>
         <Row label="mono">
-          <TextLink
-            variant="mono"
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-            trailing="external"
-          >
+          <TextLink variant="mono" href="https://github.com" external>
             checkout.module.ts:12–34
           </TextLink>
-          <TextLink variant="mono" icon={FileCode} href="https://github.com" trailing="external">
+          <TextLink variant="mono" icon={FileCode} href="https://github.com" external>
             payments/service.ts:88–120
           </TextLink>
         </Row>
         <Row label="in body copy">
           <p className={styles.body}>
             The scan finished with warnings.{' '}
-            <TextLink variant="inline" to="/history" trailing="arrow">
+            <TextLink variant="inline" to="/history" arrow>
               View job
             </TextLink>
           </p>
@@ -190,10 +186,10 @@ export function ComponentPreview() {
 
       <Section title="StatusPill">
         <Row label="scanStatusToPill()">
-          {SCAN_STATUSES.map((status) => {
-            const { label, ...pill } = scanStatusToPill(status);
+          {(Object.keys(SCAN_STATUS_PILLS) as RepoScanState[]).map((state) => {
+            const { label, ...pill } = SCAN_STATUS_PILLS[state];
             return (
-              <StatusPill key={status} {...pill}>
+              <StatusPill key={state} {...pill}>
                 {label}
               </StatusPill>
             );

@@ -1,9 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { Check, CircleAlert, Clock, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
-import { SCAN_STATUSES, scanStatusToPill } from './scanStatus';
-import { Spinner } from './Spinner';
-import { KeyHint, StatusPill } from './StatusPill';
+import { KeyHint } from './KeyHint';
+import { StatusPill } from './StatusPill';
 
 describe('StatusPill', () => {
   it('defaults to the neutral tone without an icon', () => {
@@ -26,31 +25,13 @@ describe('StatusPill', () => {
     expect(icon).toHaveAttribute('width', '12');
     expect(icon).toHaveAttribute('aria-hidden', 'true');
   });
-
-  it('renders a key hint as a <kbd>', () => {
-    render(<KeyHint>⌘ K</KeyHint>);
-    expect(screen.getByText('⌘ K').tagName).toBe('KBD');
-  });
 });
 
-describe('scanStatusToPill', () => {
-  it.each([
-    ['up_to_date', 'accent', Check, 'Up to date'],
-    ['running', 'accent', Spinner, 'Running'],
-    ['queued', 'neutral', Clock, 'Queued'],
-    ['failed', 'neutral', CircleAlert, 'Failed'],
-    ['needs_attention', 'neutral', CircleAlert, 'Needs attention'],
-  ] as const)('maps %s to a %s pill', (status, tone, icon, label) => {
-    expect(scanStatusToPill(status)).toEqual({ tone, icon, label });
-  });
-
-  it('covers every scan status', () => {
-    expect(SCAN_STATUSES).toHaveLength(5);
-  });
-
-  it('renders the running state with a spinning loader', () => {
-    const { label, ...pill } = scanStatusToPill('running');
-    render(<StatusPill {...pill}>{label}</StatusPill>);
-    expect(screen.getByText('Running').querySelector('[data-spinner]')).not.toBeNull();
+describe('KeyHint', () => {
+  it('renders a <kbd>', () => {
+    render(<KeyHint className="x">⌘ K</KeyHint>);
+    const hint = screen.getByText('⌘ K');
+    expect(hint.tagName).toBe('KBD');
+    expect(hint).toHaveClass('x');
   });
 });

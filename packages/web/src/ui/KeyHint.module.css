@@ -1,0 +1,4 @@
+/* ⌘K hint (utility bar): the neutral status pill, rendered as <kbd>. */
+.keyHint {
+  composes: pill neutral from './StatusPill.module.css';
+}

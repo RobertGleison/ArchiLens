@@ -16,8 +16,14 @@
   cursor: pointer;
 }
 
-.link:hover {
+.link:hover:not(:disabled) {
   text-decoration: underline;
+}
+
+/* Button mode only (links cannot be disabled). */
+.link:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
 }
 
 .action {

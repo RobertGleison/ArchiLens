@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Plus } from 'lucide-react';
 import { createRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -13,6 +13,11 @@ describe('Button', () => {
     expect(button).toHaveAttribute('type', 'button');
     expect(button).toHaveAttribute('data-variant', 'secondary');
     expect(button).toHaveAttribute('data-size', 'md');
+  });
+
+  it('lets callers override the type', () => {
+    render(<Button type="submit">Save</Button>);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'submit');
   });
 
   it.each([
@@ -65,7 +70,7 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('replaces the icon with a spinner, sets aria-busy and disables while loading', () => {
+  it('is inert but focusable while loading, with a spinner in place of the icon', () => {
     const onClick = vi.fn();
     render(
       <Button icon={Plus} loading onClick={onClick}>
@@ -73,27 +78,74 @@ describe('Button', () => {
       </Button>,
     );
     const button = screen.getByRole('button', { name: 'Run scan' });
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveAttribute('aria-busy', 'true');
-    expect(button).toBeDisabled();
     expect(button.querySelectorAll('svg')).toHaveLength(1);
     expect(button.querySelector('[data-spinner]')).not.toBeNull();
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it('keeps focus when it starts loading and announces it politely', () => {
+    const onClick = vi.fn();
+    const { rerender } = render(
+      <Button loading={false} onClick={onClick}>
+        Run scan
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Run scan' });
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('');
+
+    act(() => button.focus());
+    rerender(
+      <Button loading onClick={onClick}>
+        Run scan
+      </Button>,
+    );
+    expect(button).toHaveFocus();
+    expect(status).toHaveTextContent('Loading');
+
+    rerender(
+      <Button loading={false} onClick={onClick}>
+        Run scan
+      </Button>,
+    );
+    expect(button).not.toHaveAttribute('aria-disabled');
+    expect(status).toHaveTextContent('');
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not submit a form while loading', () => {
+    const onSubmit = vi.fn((e: { preventDefault: () => void }) => e.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Button type="submit" loading>
+          Save
+        </Button>
+      </form>,
+    );
+    fireEvent.click(screen.getByRole('button'));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('keeps the label (for width and name) when loading without an icon', () => {
     render(<Button loading>Compare</Button>);
     const button = screen.getByRole('button', { name: 'Compare' });
     expect(button.querySelector('[data-spinner]')).not.toBeNull();
-    expect(button).toHaveTextContent('Compare');
   });
 
-  it('is not busy when not loading', () => {
+  it('has no busy state or status region unless it can load', () => {
     render(<Button>Compare</Button>);
-    expect(screen.getByRole('button')).not.toHaveAttribute('aria-busy');
+    const button = screen.getByRole('button');
+    expect(button).not.toHaveAttribute('aria-busy');
+    expect(button).not.toHaveAttribute('aria-disabled');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('renders a router link with `to`', () => {
+  it('renders a router link with `to`, never disabled or busy', () => {
     render(
       <MemoryRouter future={ROUTER_FUTURE}>
         <Button to="/history" variant="primary" icon={Plus}>
@@ -104,17 +156,30 @@ describe('Button', () => {
     const link = screen.getByRole('link', { name: 'View running job' });
     expect(link).toHaveAttribute('href', '/history');
     expect(link).toHaveAttribute('data-variant', 'primary');
+    for (const attr of ['disabled', 'aria-disabled', 'aria-busy', 'type']) {
+      expect(link).not.toHaveAttribute(attr);
+    }
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('renders a plain anchor with `href`', () => {
+  it('renders an external anchor with `href external`, never disabled or busy', () => {
     render(
-      <Button href="https://github.com/acme/checkout" target="_blank" rel="noreferrer">
+      <Button href="https://github.com/acme/checkout" external>
         Open in GitHub
       </Button>,
     );
-    const link = screen.getByRole('link', { name: 'Open in GitHub' });
+    const link = screen.getByRole('link', { name: 'Open in GitHub (opens in new tab)' });
     expect(link).toHaveAttribute('href', 'https://github.com/acme/checkout');
     expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    for (const attr of ['disabled', 'aria-disabled', 'aria-busy', 'type']) {
+      expect(link).not.toHaveAttribute(attr);
+    }
+  });
+
+  it('renders a same-tab anchor with `href` alone', () => {
+    render(<Button href="/docs">Docs</Button>);
+    const link = screen.getByRole('link', { name: 'Docs' });
+    expect(link).not.toHaveAttribute('target');
   });
 });
