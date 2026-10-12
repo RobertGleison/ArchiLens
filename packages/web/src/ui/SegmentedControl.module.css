@@ -1,0 +1,50 @@
+/*
+ * Segmented control, Figma "Frequency choices" 3:14505 (gap 6; the spec's "~8" is overridden by
+ * Figma) with options 3:14506 (selected) / 3:14510: padding 9x13, 1px border, radius 6, Inter 500
+ * 11px. Selected: accent fill and border, white label. Unselected: white, border-grey, ink.
+ * Derived (not drawn in Figma): hover = subtle fill, keyboard focus = the focus ring on the option,
+ * disabled = reduced opacity.
+ */
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.option {
+  composes: caption from '../styles/typography.module.css';
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--space-5) + var(--space-4)) calc(var(--space-10) + var(--space-3)); /* 9 13 */
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.option:hover:not([data-checked], [data-disabled]) {
+  background: var(--color-surface-subtle);
+}
+
+.option[data-checked] {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-dark);
+}
+
+.option[data-disabled] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* The native radio is visually hidden; show its keyboard focus on the option. */
+.option:has(.input:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

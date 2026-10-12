@@ -22,6 +22,7 @@
   --color-accent: #3c6e71;
   --color-accent-hover: #376568; /* primary hover/active: accent ~8% darker (not in Figma) */
   --color-accent-tint: rgba(60, 110, 113, 0.05);
+  --color-accent-ring: rgba(60, 110, 113, 0.15); /* text-field focus halo (not in Figma) */
   --color-border: #d9d9d9;
   --color-surface: #ffffff;
   --color-surface-inverse: var(--color-ink); /* sidebar background */
@@ -99,6 +100,7 @@
   /* Control and layout sizes */
   --size-control: 38px; /* button, input */
   --size-control-sm: 30px; /* small button */
+  --size-textarea-min: 88px; /* textarea minimum height */
   --size-nav-item: 42px;
   --size-table-header: 36px;
   --size-table-row-min: 60px;

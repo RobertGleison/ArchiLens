@@ -63,3 +63,27 @@
 .input:indeterminate + .box .mixed {
   display: block;
 }
+
+/*
+ * Labelled row, Figma 3:13047 ("Select all", gap 8) / 3:14559 ("Push trigger", gap 7; the spec's
+ * 8 is used): label 11px ink. Disabled dims the label only (derived).
+ */
+.labelled {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+}
+
+.label {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink);
+}
+
+.labelled:has(.input:disabled) {
+  cursor: not-allowed;
+}
+
+.labelled:has(.input:disabled) .label {
+  opacity: var(--opacity-disabled);
+}

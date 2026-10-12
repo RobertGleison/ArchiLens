@@ -1,0 +1,87 @@
+/*
+ * Text controls, Figma "Input" 3:13038 / 3:13043 (38px, 1px border, radius 6, padding-x 12, gap 12,
+ * 12px ink text, trailing 14px ink icon) and "Feedback input" 3:14132 (padding 12, min-height 88,
+ * muted placeholder).
+ *
+ * Derived (not drawn in Figma; LIN-86 spec): focus = accent border + 2px accent halo
+ * (--color-accent-ring, an outline, since there are no shadows), shown on any focus because text
+ * fields take keyboard input after a click too; disabled = subtle fill, muted text; invalid = ink
+ * border (monochrome, the design has no error colour) plus the Field's error line.
+ */
+.wrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.control {
+  composes: bodySm from '../styles/typography.module.css';
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.control::placeholder {
+  color: var(--color-ink-muted);
+  opacity: 1;
+}
+
+.control:focus {
+  border-color: var(--color-accent);
+  outline: var(--space-2) solid var(--color-accent-ring);
+  outline-offset: 0;
+}
+
+.control[aria-invalid='true'] {
+  border-color: var(--color-ink);
+}
+
+.control:disabled {
+  background: var(--color-surface-subtle);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.input,
+.select {
+  height: var(--size-control);
+  padding: 0 var(--space-12);
+}
+
+/* Room for the trailing icon: padding 12 + icon 14 + gap 12. */
+.withIcon {
+  padding-right: calc(var(--space-12) * 2 + var(--space-14));
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.textarea {
+  display: block;
+  min-height: var(--size-textarea-min);
+  padding: var(--space-12);
+  resize: vertical;
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  right: var(--space-12);
+  flex-shrink: 0;
+  color: var(--color-ink);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.wrapper:has(.control:disabled) .icon {
+  color: var(--color-ink-muted);
+}

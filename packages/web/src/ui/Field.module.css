@@ -1,0 +1,65 @@
+/*
+ * Field, Figma 3:13036 / 3:14519: column, gap 6, label Inter 500 12px ink. Help text (11px muted)
+ * and the error message (11px ink + circle-alert, monochrome: the design has no error colour) are
+ * derived from the LIN-86 spec; neither is drawn in Figma.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.label {
+  composes: bodySm from '../styles/typography.module.css';
+  align-self: flex-start;
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+}
+
+.description,
+.error {
+  composes: caption from '../styles/typography.module.css';
+  margin: 0;
+}
+
+.description {
+  color: var(--color-ink-muted);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  color: var(--color-ink);
+}
+
+/* Centre the 12px icon on the first 16.5px line. */
+.errorIcon {
+  flex-shrink: 0;
+  margin-top: calc((var(--font-size-caption) * var(--line-height-default) - var(--space-12)) / 2);
+}
+
+/*
+ * Field rows: filters (3:13035) gap 12, forms (3:14206, 3:14518) gap 16. Fields share the
+ * width equally by default (zero specificity, so a field's own `flex` wins: use
+ * `flex: 0 0 160px` for a fixed-width field); other children (e.g. a button) keep their size.
+ */
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+
+:where(.row > .field) {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rowForm {
+  gap: var(--space-16);
+}
+
+.rowEnd {
+  align-items: flex-end;
+}

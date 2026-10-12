@@ -36,3 +36,16 @@ describe('Checkbox', () => {
     expect(screen.getByRole('checkbox')).toBeDisabled();
   });
 });
+
+describe('Checkbox with label', () => {
+  it('is named by its visible label, toggles from the text and keeps className on the row', async () => {
+    const user = userEvent.setup();
+    const ref = createRef<HTMLInputElement>();
+    render(<Checkbox ref={ref} label="Push to monitored branches" className="row" />);
+    const box = screen.getByRole('checkbox', { name: 'Push to monitored branches' });
+    expect(ref.current).toBe(box);
+    expect(box.closest('label')).toHaveClass('row');
+    await user.click(screen.getByText('Push to monitored branches'));
+    expect(box).toBeChecked();
+  });
+});

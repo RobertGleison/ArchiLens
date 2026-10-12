@@ -108,3 +108,58 @@
 .fullColumn {
   width: 1160px;
 }
+
+/* Form previews: Figma widths at 1440px. Fixed-width fields opt out of FieldRow's equal sharing. */
+.discoverInner {
+  width: 750px; /* Discover card content (3:13035) */
+}
+
+.configInner {
+  width: 706px; /* Configuration card content (3:14500) */
+}
+
+.asideInner {
+  width: 306px; /* aside card content (3:14127) */
+}
+
+.w136 {
+  flex: 0 0 136px;
+}
+
+.w155 {
+  flex: 0 0 155px;
+}
+
+.w160 {
+  flex: 0 0 160px;
+}
+
+.w200 {
+  flex: 0 0 200px;
+}
+
+.w234 {
+  flex: 0 0 234px;
+}
+
+.w290 {
+  flex: 0 0 290px;
+}
+
+.tabPanel {
+  composes: bodySm from '../styles/typography.module.css';
+  padding: var(--space-16) 0 0;
+  color: var(--color-ink-muted);
+}
+
+/* "Also run on" row (3:14557): gap 16, items centred. */
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.inlineLabel {
+  composes: bodySm from '../styles/typography.module.css';
+  font-weight: var(--font-weight-medium);
+}

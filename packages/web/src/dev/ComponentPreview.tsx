@@ -50,6 +50,7 @@ import { StatusPill } from '../ui/StatusPill';
 import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
 import { DataTablePreview } from './DataTablePreview';
+import { FormsPreview, TabsPreview } from './FormsPreview';
 
 const noop = () => {};
 
@@ -291,6 +292,10 @@ export function ComponentPreview() {
       </Section>
 
       <Section title="Checkbox">
+        <Row label="with label (3:13047)">
+          <Checkbox label="3 selected" defaultChecked />
+          <Checkbox label="GitHub release" />
+        </Row>
         <Row label="unchecked / checked / mixed">
           <Checkbox aria-label="Unchecked" />
           <Checkbox aria-label="Checked" defaultChecked />
@@ -450,6 +455,14 @@ export function ComponentPreview() {
         />
         <ProgressBar size="sm" aria-label="Empty" value={0} />
         <ProgressBar size="sm" aria-label="Complete" value={100} />
+      </Block>
+
+      <Block title="Tabs">
+        <TabsPreview />
+      </Block>
+
+      <Block title="Form controls">
+        <FormsPreview />
       </Block>
 
       <Block title="DataTable">

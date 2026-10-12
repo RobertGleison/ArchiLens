@@ -6,14 +6,21 @@ import {
   useRef,
   type ChangeEvent,
   type ComponentPropsWithoutRef,
+  type ReactNode,
 } from 'react';
 import { cx } from './cx';
 import { ICON_SIZE } from './icon';
+import { hasSlot } from './slot';
 import styles from './Checkbox.module.css';
 
 export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'size'> {
   /** Mixed state (some but not all of a group selected); shown as a minus, announced as mixed. */
   indeterminate?: boolean;
+  /**
+   * Visible label to the right (11px ink, gap 8; Figma "Select all" 3:13047, "Push trigger"
+   * 3:14559). The whole row is then a `<label>`, so clicking the text toggles the box.
+   */
+  label?: ReactNode;
 }
 
 /**
@@ -24,11 +31,12 @@ export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, '
  * The input is transparent and spans a 24px hit area centred on the 16px box (WCAG 2.5.8), without
  * changing layout. Hover, focus, indeterminate and disabled are derived (not drawn in Figma).
  *
- * Props routing: `className` goes on the wrapper `<span>`; the ref and every other prop (checked,
- * onChange, disabled, aria-*, id, name…) go on the `<input>`.
+ * Props routing: `className` goes on the wrapper (the `<label>` when `label` is set, else the box
+ * `<span>`); the ref and every other prop (checked, onChange, disabled, aria-*, id, name…) go on
+ * the `<input>`.
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
-  { indeterminate = false, className, onChange, ...rest },
+  { indeterminate = false, label, className, onChange, ...rest },
   ref,
 ) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,8 +51,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
     event.currentTarget.indeterminate = indeterminate;
   };
 
-  return (
-    <span className={cx(styles.root, className)}>
+  const box = (
+    <span className={cx(styles.root, !hasSlot(label) && className)}>
       <input
         ref={inputRef}
         type="checkbox"
@@ -57,5 +65,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
         <Minus size={ICON_SIZE.pill} className={styles.mixed} />
       </span>
     </span>
+  );
+  if (!hasSlot(label)) return box;
+  return (
+    <label className={cx(styles.labelled, className)}>
+      {box}
+      <span className={styles.label}>{label}</span>
+    </label>
   );
 });
