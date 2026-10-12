@@ -7,15 +7,17 @@ import { omit } from './omit';
 import styles from './TextLink.module.css';
 import a11y from './visuallyHidden.module.css';
 
-export type TextLinkVariant = 'action' | 'inline' | 'mono';
+export type TextLinkVariant = 'action' | 'inline' | 'mono' | 'quiet';
 
 /**
  * `action` (600 12px, the default): section header actions and table identity links.
  * `inline` (400): links in body copy, `size` `md` 12px (default) or `sm` 11px.
  * `mono` (IBM Plex Mono 11px): evidence and file references.
+ * `quiet` (400 12px ink): row actions in tables, e.g. "View job →", "Cancel" (3:12871).
  */
 type TextLinkVariantProps =
-  { variant?: 'action' | 'mono'; size?: never } | { variant: 'inline'; size?: 'md' | 'sm' };
+  | { variant?: 'action' | 'mono' | 'quiet'; size?: never }
+  | { variant: 'inline'; size?: 'md' | 'sm' };
 
 type TextLinkOwnProps = TextLinkVariantProps & {
   /** Optional leading icon at 12px, e.g. `FileCode` on file references. */

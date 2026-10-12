@@ -71,6 +71,7 @@ const EXPECTED: Record<string, string> = {
   '--size-table-header': '36px',
   '--size-table-row-min': '60px',
   '--size-progress-sm': '4px',
+  '--size-table-progress': '220px',
   '--size-progress-md': '5px',
   '--size-utility-bar': '68px',
   '--size-sidebar': '216px',

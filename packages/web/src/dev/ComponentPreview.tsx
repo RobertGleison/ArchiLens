@@ -35,6 +35,7 @@ import { AnchorList } from '../ui/AnchorList';
 import { AttributeList, AttributeListItem } from '../ui/AttributeList';
 import { Button, type ButtonSize, type ButtonVariant } from '../ui/Button';
 import { Card, CardFootnote, SubsectionHeading } from '../ui/Card';
+import { Checkbox } from '../ui/Checkbox';
 import { Divider } from '../ui/Divider';
 import { IconButton } from '../ui/IconButton';
 import { KeyHint } from '../ui/KeyHint';
@@ -48,6 +49,7 @@ import { Spinner } from '../ui/Spinner';
 import { StatusPill } from '../ui/StatusPill';
 import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
+import { DataTablePreview } from './DataTablePreview';
 
 const noop = () => {};
 
@@ -270,6 +272,14 @@ export function ComponentPreview() {
             payments/service.ts:88–120
           </TextLink>
         </Row>
+        <Row label="quiet (table actions)">
+          <TextLink variant="quiet" to="/history" arrow>
+            View job
+          </TextLink>
+          <TextLink variant="quiet" onClick={noop}>
+            Cancel
+          </TextLink>
+        </Row>
         <Row label="in body copy">
           <p className={styles.body}>
             The scan finished with warnings.{' '}
@@ -277,6 +287,18 @@ export function ComponentPreview() {
               View job
             </TextLink>
           </p>
+        </Row>
+      </Section>
+
+      <Section title="Checkbox">
+        <Row label="unchecked / checked / mixed">
+          <Checkbox aria-label="Unchecked" />
+          <Checkbox aria-label="Checked" defaultChecked />
+          <Checkbox aria-label="Mixed" indeterminate readOnly />
+        </Row>
+        <Row label="disabled">
+          <Checkbox aria-label="Disabled" disabled />
+          <Checkbox aria-label="Disabled checked" disabled defaultChecked />
         </Row>
       </Section>
 
@@ -428,6 +450,10 @@ export function ComponentPreview() {
         />
         <ProgressBar size="sm" aria-label="Empty" value={0} />
         <ProgressBar size="sm" aria-label="Complete" value={100} />
+      </Block>
+
+      <Block title="DataTable">
+        <DataTablePreview />
       </Block>
 
       <Block title="AttributeList / AnchorList">

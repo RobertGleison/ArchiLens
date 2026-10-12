@@ -1,6 +1,6 @@
 .page {
   padding: var(--space-page);
-  max-width: 1080px;
+  max-width: 1280px;
 }
 
 .title {
@@ -97,4 +97,14 @@
 /* Overview main column width at 1440px (Figma 3:12730). */
 .mainColumn {
   width: 746px;
+}
+
+/* Discover repositories card width at 1440px (Figma 3:13029). */
+.discoverColumn {
+  width: 790px;
+}
+
+/* Full content width at 1440px (Figma 3:12838 scan queue card). */
+.fullColumn {
+  width: 1160px;
 }

@@ -30,6 +30,11 @@ describe('TextLink', () => {
     expect(link).toHaveAttribute('data-variant', 'inline');
   });
 
+  it('renders the quiet variant for table row actions', () => {
+    render(<TextLink variant="quiet">Cancel</TextLink>);
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-variant', 'quiet');
+  });
+
   it('opens external links in a new tab and says so', () => {
     render(
       <TextLink variant="mono" icon={FileCode} href="https://github.com/x" external>

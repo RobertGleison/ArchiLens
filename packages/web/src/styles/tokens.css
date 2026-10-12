@@ -103,6 +103,7 @@
   --size-table-header: 36px;
   --size-table-row-min: 60px;
   --size-progress-sm: 4px; /* scan progress bar height */
+  --size-table-progress: 220px; /* scan progress bar width in a table cell */
   --size-progress-md: 5px; /* budget bar height */
   --size-utility-bar: 68px;
   --size-sidebar: 216px; /* sidebar width */
