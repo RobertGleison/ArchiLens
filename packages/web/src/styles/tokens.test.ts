@@ -49,6 +49,7 @@ const EXPECTED: Record<string, string> = {
   '--space-card-sm': 'var(--space-16)',
   '--space-row': 'var(--space-12)',
 
+  '--radius-2xs': '2px',
   '--radius-xs': '3px',
   '--radius-sm': '4px',
   '--radius-md': '6px',
@@ -68,6 +69,8 @@ const EXPECTED: Record<string, string> = {
   '--size-nav-item': '42px',
   '--size-table-header': '36px',
   '--size-table-row-min': '60px',
+  '--size-progress-sm': '4px',
+  '--size-progress-md': '5px',
   '--size-utility-bar': '68px',
   '--size-sidebar': '216px',
   '--size-aside': '346px',
@@ -105,6 +108,7 @@ describe('design tokens', () => {
       card: 16,
       search: 17,
       nav: 18,
+      notice: 18,
       logo: 28,
     });
   });

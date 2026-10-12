@@ -2,6 +2,7 @@ import {
   Activity,
   ArrowUpRight,
   Bell,
+  CalendarClock,
   Check,
   ChevronDown,
   CircleAlert,
@@ -10,7 +11,12 @@ import {
   Download,
   ExternalLink,
   FileCode,
+  FolderGit2,
   FolderPlus,
+  GitCompareArrows,
+  History,
+  Info,
+  Layers,
   Lock,
   Maximize2,
   MessageSquare,
@@ -18,15 +24,25 @@ import {
   Plus,
   RotateCw,
   Search,
+  ShieldCheck,
   ThumbsDown,
   ThumbsUp,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { RepoScanState } from '@archilens/shared';
 import { SCAN_STATUS_PILLS } from '../scans/scanStatusPill';
+import { AnchorList } from '../ui/AnchorList';
+import { AttributeList, AttributeListItem } from '../ui/AttributeList';
 import { Button, type ButtonSize, type ButtonVariant } from '../ui/Button';
+import { Card, CardFootnote, SubsectionHeading } from '../ui/Card';
+import { Divider } from '../ui/Divider';
 import { IconButton } from '../ui/IconButton';
 import { KeyHint } from '../ui/KeyHint';
+import { StatGrid } from '../ui/layout';
+import { Notice } from '../ui/Notice';
+import { OptionCard, OptionCardGroup, PreviewTile } from '../ui/OptionCard';
+import { ProgressBar } from '../ui/ProgressBar';
+import { StatTile } from '../ui/StatTile';
 import { GithubIcon } from '../ui/icons/GithubIcon';
 import { Spinner } from '../ui/Spinner';
 import { StatusPill } from '../ui/StatusPill';
@@ -59,6 +75,86 @@ const BUTTON_MATRIX: [ButtonVariant, ButtonSize][] = [
   ['primary', 'sm'],
   ['secondary', 'sm'],
 ];
+
+function Block({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      <div className={styles.stack}>{children}</div>
+    </section>
+  );
+}
+
+function Caption({ children }: { children: ReactNode }) {
+  return <p className={styles.caption}>{children}</p>;
+}
+
+function OptionCardDemo() {
+  const [mode, setMode] = useState<string | null>('incremental');
+  const [orgs, setOrgs] = useState<string[]>(['meridian']);
+  return (
+    <>
+      <Caption>Scan modes (3:13418), radio group: arrow keys move the selection</Caption>
+      <OptionCardGroup name="scan-mode" aria-label="Scan mode" value={mode} onValueChange={setMode}>
+        <OptionCard
+          value="baseline"
+          icon={Layers}
+          title="Baseline"
+          description="Rebuild the current architecture"
+          meta="Estimated $3.60 · ~210k tokens"
+          showSelectedPill
+        />
+        <OptionCard
+          value="incremental"
+          icon={GitCompareArrows}
+          title="Incremental"
+          description="Changes since the last successful scan"
+          meta="Estimated $0.42 · ~24k tokens"
+          showSelectedPill
+        />
+        <OptionCard
+          value="backfill"
+          icon={History}
+          title="Historical backfill"
+          description="Reconstruct architecture over time"
+          meta="Estimated $9.20 · monthly checkpoints"
+          showSelectedPill
+        />
+      </OptionCardGroup>
+      <Caption>Organization sources (3:13008), checkbox group, row layout</Caption>
+      <OptionCardGroup
+        type="checkbox"
+        name="organizations"
+        aria-label="Organizations"
+        value={orgs}
+        onValueChange={setOrgs}
+      >
+        <OptionCard
+          layout="row"
+          value="meridian"
+          title="meridian"
+          description="18 repositories available"
+          trailing={<StatusPill tone="accent">Approved</StatusPill>}
+        />
+        <OptionCard
+          layout="row"
+          value="meridian-cloud"
+          title="meridian-cloud"
+          description="9 repositories available"
+          trailing={<StatusPill tone="accent">Approved</StatusPill>}
+        />
+        <OptionCard
+          layout="row"
+          value="meridian-labs"
+          title="meridian-labs"
+          description="Approval requested Oct 10"
+          trailing={<StatusPill>Pending approval</StatusPill>}
+          disabled
+        />
+      </OptionCardGroup>
+    </>
+  );
+}
 
 /** Dev-only page (`/__components`) showing every UI component variant and state. */
 export function ComponentPreview() {
@@ -220,6 +316,155 @@ export function ComponentPreview() {
           <KeyHint>Ctrl K</KeyHint>
         </Row>
       </Section>
+
+      <Block title="StatTile">
+        <Caption>Overview metrics (3:12712)</Caption>
+        <StatGrid>
+          <StatTile
+            label="Monitored repositories"
+            value="8"
+            helper="Across 2 GitHub organizations"
+          />
+          <StatTile
+            label="Architecture projects"
+            value="3"
+            helper="Commerce, identity & analytics"
+          />
+          <StatTile
+            label="Changes this week"
+            value="14"
+            tone="accent"
+            helper="9 dependencies · 3 topology · 2 stack"
+          />
+          <StatTile label="Analysis spend" value="$42.80" helper="October · $120 monthly budget" />
+        </StatGrid>
+        <Caption>Filled, History comparison (3:14320)</Caption>
+        <div className={styles.tileRow}>
+          <StatTile variant="filled" tone="accent" label="Components & integrations" value="+4" />
+          <StatTile variant="filled" tone="accent" label="Communication boundary" value="1" />
+          <StatTile variant="filled" label="Removed components" value="0" />
+        </div>
+      </Block>
+
+      <Block title="Card">
+        <Caption>Your architecture landscape (3:12730), shell</Caption>
+        <Card
+          className={styles.mainColumn}
+          title="Your architecture landscape"
+          description="3 projects · 8 repositories · main branches"
+          action={<TextLink to="/projects">View all projects</TextLink>}
+        >
+          <div className={styles.placeholder}>Projects table (LIN-85)</div>
+          <SubsectionHeading
+            title="Recently monitored"
+            action={
+              <TextLink variant="inline" size="sm" to="/repositories" arrow>
+                All 8 repositories
+              </TextLink>
+            }
+          />
+          <div className={styles.tileRow}>
+            <PreviewTile icon={FolderGit2} title="checkout-api" meta="TypeScript · 42 modules" />
+            <PreviewTile icon={FolderGit2} title="payments-worker" meta="Go · 8 modules" />
+            <PreviewTile icon={FolderGit2} title="storefront" meta="TypeScript · 19 modules" />
+          </div>
+        </Card>
+        <Caption>Small button action, footnote, divider</Caption>
+        <Card
+          title="Scan queue"
+          description="2 running · 1 queued"
+          headingLevel={3}
+          action={
+            <Button size="sm" icon={RotateCw}>
+              Refresh
+            </Button>
+          }
+        >
+          <ProgressBar
+            className={styles.tableProgress}
+            label="Building architecture model · 68%"
+            value={68}
+          />
+          <Divider />
+          <CardFootnote>Estimates use the last 30 days of model usage.</CardFootnote>
+        </Card>
+      </Block>
+
+      <Block title="OptionCard">
+        <OptionCardDemo />
+      </Block>
+
+      <Block title="Notice">
+        <Notice icon={ShieldCheck}>
+          Connected as meridian-bot. Read-only access; source is discarded after analysis.
+        </Notice>
+        <Notice icon={CalendarClock}>
+          Next run tomorrow at 08:00 Europe/London · Skip unchanged enabled · Secrets excluded ·
+          Source discarded after analysis.
+        </Notice>
+        <Notice icon={GitCompareArrows}>
+          Comparison uses stored architecture models. It does not run another source analysis or
+          incur model usage.
+        </Notice>
+        <Notice icon={Info} live>
+          Live notice (role=status).
+        </Notice>
+      </Block>
+
+      <Block title="ProgressBar">
+        <Caption>sm, scan progress (3:12864), 220px</Caption>
+        <ProgressBar
+          className={styles.tableProgress}
+          label="Building architecture model · 68%"
+          value={68}
+        />
+        <Caption>md, monthly budget (3:14799), full width</Caption>
+        <ProgressBar
+          size="md"
+          aria-label="Monthly budget used"
+          value={42.8}
+          max={120}
+          valueText="$42.80 of $120"
+        />
+        <ProgressBar size="sm" aria-label="Empty" value={0} />
+        <ProgressBar size="sm" aria-label="Complete" value={100} />
+      </Block>
+
+      <Block title="AttributeList / AnchorList">
+        <div className={styles.asideRow}>
+          <Card title="Analysis provenance" description="Reproducible context for this report">
+            <AttributeList>
+              <AttributeListItem label="Repository / branch">
+                meridian/checkout-api · main
+              </AttributeListItem>
+              <AttributeListItem label="Commit range">
+                b79a120 → a8f2c91 · 26 commits
+              </AttributeListItem>
+              <AttributeListItem label="Scan mode">Incremental · Standard detail</AttributeListItem>
+              <AttributeListItem label="Provider / model">OpenAI · GPT-4.1</AttributeListItem>
+              <AttributeListItem label="Usage">24.6k tokens · $0.43 actual cost</AttributeListItem>
+            </AttributeList>
+            <div>
+              <TextLink variant="inline" size="sm" to="/history" arrow>
+                View scan log & full provenance
+              </TextLink>
+            </div>
+          </Card>
+          <Card title="In this report">
+            <AnchorList
+              aria-label="In this report"
+              activeHref="#executive-summary"
+              items={[
+                { href: '#executive-summary', label: 'Executive summary' },
+                { href: '#visual-diff', label: 'Architecture visual diff' },
+                { href: '#change-01', label: '01 · New cache dependency' },
+                { href: '#change-02', label: '02 · Idempotency boundary' },
+                { href: '#evidence', label: 'Evidence & limitations' },
+              ]}
+            />
+          </Card>
+        </div>
+      </Block>
     </main>
   );
 }

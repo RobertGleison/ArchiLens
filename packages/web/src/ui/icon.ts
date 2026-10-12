@@ -33,6 +33,8 @@ export const ICON_SIZE = {
   search: 17,
   /** Nav items, utility bar. */
   nav: 18,
+  /** Leading icon of a context notice. */
+  notice: 18,
   /** The `blocks` product logo. */
   logo: 28,
 } as const;

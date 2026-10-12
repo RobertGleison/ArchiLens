@@ -1,0 +1,36 @@
+/*
+ * Attribute list, Figma 3:14078 (Analysis provenance) / 3:13379 (System profile): items 16px
+ * apart; each is label + value (gap 3) then a 1px divider 10px below (provenance; System profile
+ * draws 6px, unified here), none after the last item.
+ */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-10);
+  border-bottom: var(--border-default);
+}
+
+.item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.label {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+}
+
+.value {
+  composes: caption from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+}

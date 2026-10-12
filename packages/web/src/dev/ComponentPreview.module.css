@@ -51,3 +51,50 @@
   composes: bodySm from '../styles/typography.module.css';
   margin: 0;
 }
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.tileRow {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.tileRow > * {
+  flex: 1 1 0;
+}
+
+.asideRow {
+  display: grid;
+  grid-template-columns: repeat(2, var(--size-aside));
+  align-items: start;
+  gap: var(--space-24);
+}
+
+.placeholder {
+  composes: bodySm from '../styles/typography.module.css';
+  padding: var(--space-24);
+  border: var(--border-width) dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+/* Scan progress in a table column (Figma 3:12866). */
+.tableProgress {
+  width: 220px;
+}
+
+.caption {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/* Overview main column width at 1440px (Figma 3:12730). */
+.mainColumn {
+  width: 746px;
+}

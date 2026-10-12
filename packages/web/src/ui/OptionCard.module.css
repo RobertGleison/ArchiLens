@@ -1,0 +1,142 @@
+/*
+ * Selectable option cards.
+ * - stacked, scan mode 3:13419 / 3:13425: padding 16, column gap 7, radius 6.
+ * - row, organization 3:13009: padding 16, gap 12, radius 8, items centred.
+ * Default: white, 1px border. Selected: accent tint, accent border; the stacked title turns accent
+ * (the organization row keeps an ink title, as drawn). Hover, focus and disabled are derived
+ * (not drawn in Figma): hover = subtle fill, keyboard focus = the global focus ring on the card,
+ * disabled = reduced opacity.
+ */
+.group {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-12);
+}
+
+.group > * {
+  flex: 1 1 0;
+}
+
+.column {
+  flex-direction: column;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  padding: var(--space-16);
+  border: var(--border-default);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.card:hover:not([data-disabled]):not([data-checked]) {
+  background: var(--color-surface-subtle);
+}
+
+.card[data-checked] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-tint);
+}
+
+.card[data-disabled] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+/* The native input is visually hidden; show its keyboard focus on the whole card. */
+.card:has(.input:focus-visible) {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--space-4) + var(--space-3)); /* 7px */
+  border-radius: var(--radius-md);
+}
+
+.row {
+  align-items: center;
+  gap: var(--space-12);
+  border-radius: var(--radius-lg);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.title {
+  composes: body from '../styles/typography.module.css';
+  font-weight: var(--font-weight-semibold);
+}
+
+.card[data-checked] .title {
+  color: var(--color-accent);
+}
+
+.description {
+  composes: bodySm from '../styles/typography.module.css';
+}
+
+.meta {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+.identity {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.rowTitle {
+  composes: bodySm from '../styles/typography.module.css';
+  font-weight: var(--font-weight-semibold);
+}
+
+.rowDescription {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+.trailing {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+/* Preview tile, 3:12791: subtle fill, no border, radius 6, padding 12, gap 8. */
+.preview {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-ink);
+}
+
+.previewTitle {
+  composes: bodySm from '../styles/typography.module.css';
+  font-weight: var(--font-weight-semibold);
+}
+
+.previewMeta {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-overline);
+}

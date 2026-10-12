@@ -1,0 +1,9 @@
+/* Divider, e.g. Figma 3:13388 / 3:14038: 1px, full width, border colour. */
+.divider {
+  flex-shrink: 0;
+  align-self: stretch;
+  height: var(--border-width);
+  margin: 0;
+  border: 0;
+  background: var(--color-border);
+}

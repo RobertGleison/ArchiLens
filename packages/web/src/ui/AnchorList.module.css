@@ -1,0 +1,24 @@
+/* Anchor list, Figma 3:14118: 400 12px rows, 16px apart; ink, the active item in accent. */
+.list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.active {
+  color: var(--color-accent);
+}
