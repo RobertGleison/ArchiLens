@@ -24,7 +24,7 @@ export function Sidebar({ connection, pinnedProject }: SidebarProps) {
   const pinnedLabelId = useId();
 
   return (
-    <div className={styles.sidebar}>
+    <aside className={styles.sidebar} aria-label="Workspace">
       <div className={styles.top}>
         <div className={styles.identity}>
           <Blocks size={ICON_SIZE.logo} aria-hidden className={styles.logo} />
@@ -35,7 +35,7 @@ export function Sidebar({ connection, pinnedProject }: SidebarProps) {
           </p>
         </div>
 
-        <nav aria-label="Main">
+        <nav aria-label="Workspace navigation">
           <ul className={styles.navList}>
             {NAV_ITEMS.map(({ label, to, icon: Icon }) => (
               <li key={to}>
@@ -77,6 +77,6 @@ export function Sidebar({ connection, pinnedProject }: SidebarProps) {
         </p>
         <p className={styles.connectionDetail}>{connectionSummary(connection)}</p>
       </div>
-    </div>
+    </aside>
   );
 }

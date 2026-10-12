@@ -3,9 +3,13 @@
  * default weight and line-height. Use them via `composes:` from component modules and override
  * font-weight where the design uses another weight (see the type scale comments in tokens.css).
  *
- * Each class is wrapped in :where() (zero specificity). `composes` from another file inlines this
- * file's rules into every composing module, so their order in the cascade is not reliable; with
- * zero specificity a component's own declarations always win.
+ * Each class is wrapped in :where() (zero specificity). A composing component overrides these
+ * with selectors of equal specificity otherwise, and which rule wins would then depend on cascade
+ * order, i.e. on CSS import order (Vite also inlines a composed file into each composing module),
+ * which components do not control. With zero specificity a component's own declarations win.
+ *
+ * Pitfalls: element selectors in base.css (e.g. `code, kbd`) beat :where() and so override these
+ * classes; and a `font:` shorthand in a component resets every composed font value.
  */
 :where(.display) {
   font-size: var(--font-size-display);

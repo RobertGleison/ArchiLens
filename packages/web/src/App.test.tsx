@@ -7,11 +7,12 @@ describe('App', () => {
     window.history.replaceState(null, '', '/');
   });
 
-  it('renders the token preview at /__tokens in dev', async () => {
-    window.history.replaceState(null, '', '/__tokens');
+  it('routes the browser location into the app shell', () => {
+    window.history.replaceState(null, '', '/reports');
 
     render(<App />);
 
-    expect(await screen.findByRole('heading', { name: 'Design tokens' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Reports' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('aria-current', 'page');
   });
 });

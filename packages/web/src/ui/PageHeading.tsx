@@ -19,6 +19,11 @@ export interface PageHeadingProps {
   meta?: ReactNode;
 }
 
+/** True when an optional slot has something to render (so `0` is rendered, not dropped). */
+function hasSlot(node: ReactNode): boolean {
+  return node != null && node !== false;
+}
+
 /** Page heading used by every screen (Figma `3:12699`). Renders the page's `<h1>`. */
 export function PageHeading({ title, description, breadcrumb, actions, meta }: PageHeadingProps) {
   return (
@@ -54,12 +59,12 @@ export function PageHeading({ title, description, breadcrumb, actions, meta }: P
       <div className={styles.row}>
         <div className={styles.text}>
           <h1 className={styles.title}>{title}</h1>
-          {description && <p className={styles.description}>{description}</p>}
+          {hasSlot(description) && <p className={styles.description}>{description}</p>}
         </div>
-        {actions && <div className={styles.actions}>{actions}</div>}
+        {hasSlot(actions) && <div className={styles.actions}>{actions}</div>}
       </div>
 
-      {meta && <div className={styles.meta}>{meta}</div>}
+      {hasSlot(meta) && <div className={styles.meta}>{meta}</div>}
     </div>
   );
 }

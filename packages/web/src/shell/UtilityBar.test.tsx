@@ -1,17 +1,26 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { formatRelativeTime } from './formatRelativeTime';
 import { UtilityBar } from './UtilityBar';
 
+function setPlatform(platform: string) {
+  vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform);
+}
+
 describe('UtilityBar', () => {
-  it('has a search trigger, sync status and labelled icon buttons', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('has a search trigger named by its visible text, sync status and labelled icon buttons', () => {
     const onOpenSearch = vi.fn();
     render(
       <UtilityBar lastSyncedAt={new Date(Date.now() - 2 * 60_000)} onOpenSearch={onOpenSearch} />,
     );
 
-    const search = screen.getByRole('button', { name: /search repositories/i });
-    expect(search).toHaveTextContent('Search repositories, projects, reports…');
+    const search = screen.getByRole('button', {
+      name: /^Search repositories, projects, reports…/,
+    });
     fireEvent.click(search);
     expect(onOpenSearch).toHaveBeenCalledTimes(1);
 
@@ -20,27 +29,72 @@ describe('UtilityBar', () => {
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
   });
 
-  it.each([{ metaKey: true }, { ctrlKey: true }])(
-    'opens and focuses search on %o + K',
-    (modifier) => {
-      const onOpenSearch = vi.fn();
-      render(<UtilityBar lastSyncedAt={null} onOpenSearch={onOpenSearch} />);
+  it('uses ⌘K on macOS', () => {
+    setPlatform('MacIntel');
+    const onOpenSearch = vi.fn();
+    render(<UtilityBar lastSyncedAt={null} onOpenSearch={onOpenSearch} />);
+    const search = screen.getByRole('button', { name: /search repositories/i });
+    expect(search).toHaveTextContent('⌘ K');
+    expect(search).toHaveAttribute('aria-keyshortcuts', 'Meta+K');
 
-      fireEvent.keyDown(document, { key: 'k', ...modifier });
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    expect(onOpenSearch).not.toHaveBeenCalled();
 
-      expect(onOpenSearch).toHaveBeenCalledTimes(1);
-      expect(screen.getByRole('button', { name: /search repositories/i })).toHaveFocus();
-    },
-  );
+    fireEvent.keyDown(document, { key: 'k', metaKey: true });
+    expect(onOpenSearch).toHaveBeenCalledTimes(1);
+    expect(search).toHaveFocus();
+  });
 
-  it('ignores K without a modifier and hides sync status when never synced', () => {
+  it('uses Ctrl+K elsewhere', () => {
+    setPlatform('Linux x86_64');
+    const onOpenSearch = vi.fn();
+    render(<UtilityBar lastSyncedAt={null} onOpenSearch={onOpenSearch} />);
+    const search = screen.getByRole('button', { name: /search repositories/i });
+    expect(search).toHaveTextContent('Ctrl K');
+    expect(search).toHaveAttribute('aria-keyshortcuts', 'Control+K');
+
+    fireEvent.keyDown(document, { key: 'k', metaKey: true });
+    expect(onOpenSearch).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+    expect(onOpenSearch).toHaveBeenCalledTimes(1);
+    expect(search).toHaveFocus();
+  });
+
+  it('ignores plain K, handled events and IME composition', () => {
+    setPlatform('Win32');
     const onOpenSearch = vi.fn();
     render(<UtilityBar lastSyncedAt={null} onOpenSearch={onOpenSearch} />);
 
     fireEvent.keyDown(document, { key: 'k' });
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true, isComposing: true });
+    const handled = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, cancelable: true });
+    handled.preventDefault();
+    document.dispatchEvent(handled);
 
     expect(onOpenSearch).not.toHaveBeenCalled();
     expect(screen.queryByText(/last synced/i)).not.toBeInTheDocument();
+  });
+
+  it('leaves the shortcut to the browser without an onOpenSearch handler', () => {
+    setPlatform('Win32');
+    render(<UtilityBar lastSyncedAt={null} />);
+
+    const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, cancelable: true });
+    document.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('removes the shortcut listener on unmount', () => {
+    setPlatform('Win32');
+    const onOpenSearch = vi.fn();
+    const { unmount } = render(<UtilityBar lastSyncedAt={null} onOpenSearch={onOpenSearch} />);
+
+    unmount();
+    fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
+
+    expect(onOpenSearch).not.toHaveBeenCalled();
   });
 });
 

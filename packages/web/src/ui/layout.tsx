@@ -6,16 +6,26 @@ export interface MainAsideProps {
   aside: ReactNode;
   /** `wide` = 390px aside (Overview), `default` = 346px aside (detail screens). */
   asideWidth?: 'default' | 'wide';
+  /**
+   * Element for the aside column. Defaults to `div` because the layout sits inside `<main>`;
+   * use `aside` only for content that is genuinely complementary to the page.
+   */
+  asideAs?: 'div' | 'aside';
 }
 
 /** Main column + fixed-width aside with a 24px gap (746 + 390 / 790 + 346 at 1440px). */
-export function MainAside({ main, aside, asideWidth = 'default' }: MainAsideProps) {
+export function MainAside({
+  main,
+  aside,
+  asideWidth = 'default',
+  asideAs: Aside = 'div',
+}: MainAsideProps) {
   return (
     <div
       className={asideWidth === 'wide' ? `${styles.mainAside} ${styles.wide}` : styles.mainAside}
     >
       <div className={styles.main}>{main}</div>
-      <aside className={styles.aside}>{aside}</aside>
+      <Aside className={styles.aside}>{aside}</Aside>
     </div>
   );
 }

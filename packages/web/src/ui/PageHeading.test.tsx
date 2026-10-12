@@ -46,6 +46,12 @@ describe('PageHeading', () => {
     expect(within(breadcrumb).getByText('checkout-api')).toHaveAttribute('aria-current', 'page');
   });
 
+  it('renders a falsy-but-present slot such as 0', () => {
+    renderHeading(<PageHeading title="Reports" meta={0} />);
+
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
   it('omits optional parts', () => {
     renderHeading(<PageHeading title="Reports" />);
 

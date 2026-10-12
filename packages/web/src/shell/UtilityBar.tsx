@@ -2,6 +2,7 @@ import { Bell, CircleHelp, Search } from 'lucide-react';
 import { useRef } from 'react';
 import { ICON_SIZE } from '../ui/icon';
 import { formatRelativeTime } from './formatRelativeTime';
+import { isApplePlatform } from './platform';
 import styles from './UtilityBar.module.css';
 import { useGlobalSearchShortcut } from './useGlobalSearchShortcut';
 
@@ -20,11 +21,15 @@ const SEARCH_PLACEHOLDER = 'Search repositories, projects, reports…';
  */
 export function UtilityBar({ lastSyncedAt, onOpenSearch }: UtilityBarProps) {
   const searchTrigger = useRef<HTMLButtonElement>(null);
+  const apple = isApplePlatform();
 
-  useGlobalSearchShortcut(() => {
-    searchTrigger.current?.focus();
-    onOpenSearch?.();
-  });
+  useGlobalSearchShortcut(
+    onOpenSearch &&
+      (() => {
+        searchTrigger.current?.focus();
+        onOpenSearch();
+      }),
+  );
 
   return (
     <header className={styles.bar}>
@@ -32,13 +37,12 @@ export function UtilityBar({ lastSyncedAt, onOpenSearch }: UtilityBarProps) {
         ref={searchTrigger}
         type="button"
         className={styles.search}
-        aria-label="Search repositories, projects and reports"
-        aria-keyshortcuts="Meta+K Control+K"
+        aria-keyshortcuts={apple ? 'Meta+K' : 'Control+K'}
         onClick={onOpenSearch}
       >
         <Search size={ICON_SIZE.search} aria-hidden className={styles.searchIcon} />
         <span className={styles.placeholder}>{SEARCH_PLACEHOLDER}</span>
-        <kbd className={styles.keyHint}>⌘ K</kbd>
+        <kbd className={styles.keyHint}>{apple ? '⌘ K' : 'Ctrl K'}</kbd>
       </button>
 
       <div className={styles.utilities}>

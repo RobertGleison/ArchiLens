@@ -62,7 +62,7 @@
   padding: 0 var(--space-12);
   border-radius: var(--radius-md);
   color: var(--color-on-dark);
-  background: var(--color-surface-inverse);
+  background: transparent;
   line-height: var(--line-height-normal);
   text-decoration: none;
   white-space: nowrap;
