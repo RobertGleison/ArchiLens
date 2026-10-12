@@ -137,14 +137,20 @@ describe('Button', () => {
     expect(button.querySelector('[data-spinner]')).not.toBeNull();
   });
 
-  it('has no busy state when not loading but always renders an empty status region', () => {
+  it('has no busy state or status region unless it can load', () => {
     render(<Button>Compare</Button>);
     const button = screen.getByRole('button');
     expect(button).not.toHaveAttribute('aria-busy');
     expect(button).not.toHaveAttribute('aria-disabled');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(button.nextElementSibling).toBeNull();
+  });
+
+  it('renders an empty status region as the next sibling when it can load', () => {
+    render(<Button loading={false}>Compare</Button>);
     const status = screen.getByRole('status');
     expect(status).toHaveTextContent('');
-    expect(button.nextElementSibling).toBe(status);
+    expect(screen.getByRole('button').nextElementSibling).toBe(status);
   });
 
   it("keeps a caller's aria-disabled when not loading", () => {

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { StatTile } from './StatTile';
+import styles from './StatTile.module.css';
 
 describe('StatTile', () => {
   it('is a description list: label term, value and helper details', () => {
@@ -19,6 +20,9 @@ describe('StatTile', () => {
     expect(helper).toHaveTextContent('Across 2 GitHub organizations');
     const tile = term.parentElement!;
     expect(tile.tagName).toBe('DL');
+    expect(tile).toHaveClass(styles.outlined!);
+    expect(value).toHaveClass(styles.value!);
+    expect(value).not.toHaveClass(styles.accent!);
     expect(tile).toHaveClass('x');
     expect(tile).toHaveAttribute('data-variant', 'outlined');
     expect(tile).toHaveAttribute('data-tone', 'ink');
@@ -30,6 +34,9 @@ describe('StatTile', () => {
     const tile = screen.getByRole('term').parentElement!;
     expect(tile).toHaveAttribute('data-variant', 'filled');
     expect(tile).toHaveAttribute('data-tone', 'accent');
+    expect(tile).toHaveClass(styles.filled!);
+    expect(tile).not.toHaveClass(styles.outlined!);
+    expect(screen.getByRole('definition')).toHaveClass(styles.filledValue!, styles.accent!);
   });
 
   it('gives the filled variant an ink value by default', () => {

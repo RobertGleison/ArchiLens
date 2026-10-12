@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { cx } from './cx';
+import { hasSlot } from './slot';
 import { ICON_SIZE } from './icon';
 import type { IconComponent } from './iconTypes';
 import { StatusPill } from './StatusPill';
@@ -24,9 +25,14 @@ interface GroupContextValue {
 
 const GroupContext = createContext<GroupContextValue | null>(null);
 
+/** The group must be named: by `aria-label` or by pointing `aria-labelledby` at a visible heading. */
+type GroupNameProps =
+  | { 'aria-label': string; 'aria-labelledby'?: never }
+  | { 'aria-label'?: never; 'aria-labelledby': string };
+
 interface GroupBaseProps extends Omit<
   ComponentPropsWithoutRef<'div'>,
-  'onChange' | 'defaultValue'
+  'onChange' | 'defaultValue' | 'aria-label' | 'aria-labelledby'
 > {
   /** Shared `name` of the native inputs. */
   name: string;
@@ -50,7 +56,8 @@ export interface CheckboxOptionCardGroupProps extends GroupBaseProps {
   onValueChange: (value: string[]) => void;
 }
 
-export type OptionCardGroupProps = RadioOptionCardGroupProps | CheckboxOptionCardGroupProps;
+export type OptionCardGroupProps = (RadioOptionCardGroupProps | CheckboxOptionCardGroupProps) &
+  GroupNameProps;
 
 /**
  * A group of selectable option cards (scan modes 3:13418, organization sources 3:13008). Name it
@@ -170,9 +177,12 @@ export const OptionCard = forwardRef<HTMLInputElement, OptionCardProps>(function
   };
 
   const titleId = `${uid}-title`;
-  const descriptionId = description != null ? `${uid}-description` : undefined;
-  const metaId = meta != null && layout === 'stacked' ? `${uid}-meta` : undefined;
-  const trailingId = trailing != null && layout === 'row' ? `${uid}-trailing` : undefined;
+  const showDescription = hasSlot(description);
+  const showMeta = hasSlot(meta) && layout === 'stacked';
+  const showTrailing = hasSlot(trailing) && layout === 'row';
+  const descriptionId = showDescription ? `${uid}-description` : undefined;
+  const metaId = showMeta ? `${uid}-meta` : undefined;
+  const trailingId = showTrailing ? `${uid}-trailing` : undefined;
   const describedBy = [descriptionId, metaId, trailingId].filter(Boolean).join(' ') || undefined;
 
   const input = (
@@ -205,13 +215,13 @@ export const OptionCard = forwardRef<HTMLInputElement, OptionCardProps>(function
             <span id={titleId} className={styles.rowTitle}>
               {title}
             </span>
-            {description != null && (
+            {showDescription && (
               <span id={descriptionId} className={styles.rowDescription}>
                 {description}
               </span>
             )}
           </span>
-          {trailing != null && (
+          {showTrailing && (
             <span id={trailingId} className={styles.trailing}>
               {trailing}
             </span>
@@ -231,12 +241,12 @@ export const OptionCard = forwardRef<HTMLInputElement, OptionCardProps>(function
               </StatusPill>
             )}
           </span>
-          {description != null && (
+          {showDescription && (
             <span id={descriptionId} className={styles.description}>
               {description}
             </span>
           )}
-          {meta != null && (
+          {showMeta && (
             <span id={metaId} className={styles.meta}>
               {meta}
             </span>
@@ -267,7 +277,7 @@ export const PreviewTile = forwardRef<HTMLDivElement, PreviewTileProps>(function
     <div ref={ref} {...rest} className={cx(styles.preview, className)}>
       {Icon && <Icon size={ICON_SIZE.card} aria-hidden className={styles.icon} />}
       <span className={styles.previewTitle}>{title}</span>
-      {meta != null && <span className={styles.previewMeta}>{meta}</span>}
+      {hasSlot(meta) && <span className={styles.previewMeta}>{meta}</span>}
     </div>
   );
 });

@@ -107,6 +107,7 @@
   --size-progress-md: 5px; /* budget bar height */
   --size-utility-bar: 68px;
   --size-sidebar: 216px; /* sidebar width */
+  --size-option-card-min: 200px; /* option cards wrap below this width */
   --size-aside: 346px; /* detail-screen aside column */
   --size-aside-wide: 390px; /* overview aside column */
 }

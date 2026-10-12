@@ -9,12 +9,15 @@
  */
 .group {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: var(--space-12);
 }
 
-.group > * {
+/* Row orientation: equal widths, wrapping when a card would get narrower than its minimum. */
+.group:not(.column) > * {
   flex: 1 1 0;
+  min-width: var(--size-option-card-min);
 }
 
 .column {

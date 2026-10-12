@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { hasSlot } from './slot';
 import styles from './PageHeading.module.css';
 
 export interface BreadcrumbItem {
@@ -17,11 +18,6 @@ export interface PageHeadingProps {
   actions?: ReactNode;
   /** Optional metadata row under the heading (pills and muted text). */
   meta?: ReactNode;
-}
-
-/** True when an optional slot has something to render (so `0` is rendered, not dropped). */
-function hasSlot(node: ReactNode): boolean {
-  return node != null && node !== false;
 }
 
 /** Page heading used by every screen (Figma `3:12699`). Renders the page's `<h1>`. */

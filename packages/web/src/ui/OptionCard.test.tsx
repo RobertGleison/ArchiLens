@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Layers } from 'lucide-react';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OptionCard, OptionCardGroup, PreviewTile } from './OptionCard';
 import { StatusPill } from './StatusPill';
 
@@ -31,7 +32,31 @@ function ScanModes({ onChange }: { onChange?: (v: string) => void }) {
   );
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('OptionCardGroup (radio)', () => {
+  it('moves the selection with the arrow keys, skipping disabled cards', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ScanModes onChange={onChange} />);
+    const incremental = screen.getByRole('radio', { name: 'Incremental' });
+    await user.tab();
+    expect(incremental).toHaveFocus();
+
+    await user.keyboard('{ArrowLeft}');
+    const baseline = screen.getByRole('radio', { name: 'Baseline' });
+    expect(baseline).toHaveFocus();
+    expect(baseline).toBeChecked();
+    expect(onChange).toHaveBeenLastCalledWith('baseline');
+
+    await user.keyboard('{ArrowRight}');
+    expect(incremental).toHaveFocus();
+    expect(incremental).toBeChecked();
+    expect(onChange).toHaveBeenLastCalledWith('incremental');
+  });
+
   it('is a named radiogroup of native radios named by their titles', () => {
     render(<ScanModes />);
     expect(screen.getByRole('radiogroup', { name: 'Scan mode' })).toBeInTheDocument();
@@ -70,7 +95,6 @@ describe('OptionCardGroup (radio)', () => {
   it('throws outside a group', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<OptionCard value="x" title="X" />)).toThrow(/OptionCardGroup/);
-    vi.restoreAllMocks();
   });
 });
 

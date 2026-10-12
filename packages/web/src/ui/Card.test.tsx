@@ -35,6 +35,19 @@ describe('Card', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'Provenance' })).toBeInTheDocument();
   });
 
+  it('does not name a div root from its heading', () => {
+    render(<Card as="div" title="Plain" />);
+    expect(
+      screen.getByRole('heading', { name: 'Plain' }).closest('div[aria-labelledby]'),
+    ).toBeNull();
+    expect(screen.queryByRole('region')).toBeNull();
+  });
+
+  it('names an article root from its heading', () => {
+    render(<Card as="article" title="Report" />);
+    expect(screen.getByRole('article', { name: 'Report' })).toBeInTheDocument();
+  });
+
   it('renders a plain div without a title', () => {
     const { container } = render(<Card>content</Card>);
     expect(container.firstElementChild?.tagName).toBe('DIV');
@@ -53,14 +66,19 @@ describe('SectionHeading / SubsectionHeading / CardFootnote', () => {
     render(
       <>
         <SectionHeading title="Section" level={4} />
-        <SubsectionHeading title="Recently monitored" action={<span>All</span>} />
+        <SubsectionHeading
+          title="Recently monitored"
+          headingId="recent"
+          action={<span>All</span>}
+        />
         <CardFootnote>Note</CardFootnote>
       </>,
     );
     expect(screen.getByRole('heading', { level: 4, name: 'Section' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { level: 3, name: 'Recently monitored' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Recently monitored' })).toHaveAttribute(
+      'id',
+      'recent',
+    );
     expect(screen.getByText('Note').tagName).toBe('P');
   });
 });

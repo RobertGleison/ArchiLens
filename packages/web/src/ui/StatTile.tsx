@@ -1,28 +1,37 @@
 import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { cx } from './cx';
+import { hasSlot } from './slot';
 import styles from './StatTile.module.css';
 
 export type StatTileVariant = 'outlined' | 'filled';
 export type StatTileTone = 'ink' | 'accent';
 
-export interface StatTileProps extends Omit<ComponentPropsWithoutRef<'dl'>, 'children'> {
+interface StatTileBaseProps extends Omit<ComponentPropsWithoutRef<'dl'>, 'children'> {
   /** What is measured, e.g. "Monitored repositories". */
   label: ReactNode;
   /** The figure, e.g. `8` or "$42.80". */
   value: ReactNode;
-  /** Optional muted helper line under the value (outlined), e.g. "Across 2 GitHub organizations". */
-  helper?: ReactNode;
-  /**
-   * `outlined` (default): bordered metric tile, label above the value (Overview, 3:12713).
-   * `filled`: accent-tint comparison tile, 26px value above the label (History, 3:14321).
-   */
-  variant?: StatTileVariant;
   /**
    * Value colour: `ink` (default) or `accent` for highlighted values. Figma's History comparison
    * tiles all use `accent` (including zero deltas); the fill does not change with tone.
    */
   tone?: StatTileTone;
 }
+
+/** Bordered metric tile, label above a 30px value (Overview, 3:12713). */
+export interface OutlinedStatTileProps extends StatTileBaseProps {
+  variant?: 'outlined';
+  /** Optional muted helper line under the value, e.g. "Across 2 GitHub organizations". */
+  helper?: ReactNode;
+}
+
+/** Accent-tint comparison tile, 26px value above the label (History, 3:14321). No helper line. */
+export interface FilledStatTileProps extends StatTileBaseProps {
+  variant: 'filled';
+  helper?: never;
+}
+
+export type StatTileProps = OutlinedStatTileProps | FilledStatTileProps;
 
 /**
  * Metric / stat tile. A `<dl>` so the label (`<dt>`) names the value (`<dd>`) for assistive tech;
@@ -33,6 +42,7 @@ export const StatTile = forwardRef<HTMLDListElement, StatTileProps>(function Sta
   { label, value, helper, variant = 'outlined', tone = 'ink', className, ...rest },
   ref,
 ) {
+  const filled = variant === 'filled';
   return (
     <dl
       ref={ref}
@@ -41,9 +51,16 @@ export const StatTile = forwardRef<HTMLDListElement, StatTileProps>(function Sta
       data-variant={variant}
       data-tone={tone}
     >
-      <dt className={styles.label}>{label}</dt>
-      <dd className={cx(styles.value, tone === 'accent' && styles.accent)}>{value}</dd>
-      {helper != null && helper !== false && <dd className={styles.helper}>{helper}</dd>}
+      <dt className={filled ? styles.filledLabel : styles.label}>{label}</dt>
+      <dd
+        className={cx(
+          filled ? styles.filledValue : styles.value,
+          tone === 'accent' && styles.accent,
+        )}
+      >
+        {value}
+      </dd>
+      {!filled && hasSlot(helper) && <dd className={styles.helper}>{helper}</dd>}
     </dl>
   );
 });

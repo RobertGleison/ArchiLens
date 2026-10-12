@@ -1,13 +1,9 @@
 import { forwardRef, useId, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { cx } from './cx';
+import { hasSlot } from './slot';
 import styles from './Card.module.css';
 
 export type HeadingLevel = 2 | 3 | 4 | 5 | 6;
-
-/** True when an optional slot has something to render (so `0` is rendered, not dropped). */
-function hasSlot(node: ReactNode): boolean {
-  return node != null && node !== false;
-}
 
 export interface SectionHeadingProps extends Omit<ComponentPropsWithoutRef<'div'>, 'title'> {
   title: ReactNode;
@@ -68,11 +64,13 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
   const headingId = useId();
   const hasTitle = hasSlot(title);
   const Root = as ?? (hasTitle ? 'section' : 'div');
+  // Only sectioning roots are landmarks/named regions; a `div` gets no name from its heading.
+  const labelled = hasTitle && Root !== 'div' && !rest['aria-label'];
   return (
     <Root
       // A single ref type across the root options; all are HTMLElements.
       ref={ref as never}
-      aria-labelledby={hasTitle && !rest['aria-label'] ? headingId : undefined}
+      aria-labelledby={labelled ? headingId : undefined}
       {...rest}
       className={cx(styles.card, className)}
     >
@@ -96,15 +94,19 @@ export interface SubsectionHeadingProps extends Omit<ComponentPropsWithoutRef<'d
   action?: ReactNode;
   /** Heading element level. Defaults to 3. */
   level?: HeadingLevel;
+  /** Id for the heading element, e.g. so an `OptionCardGroup` can use it as `aria-labelledby`. */
+  headingId?: string;
 }
 
 /** Sub-section label inside a card (600 12px ink), e.g. "Recently monitored". */
 export const SubsectionHeading = forwardRef<HTMLDivElement, SubsectionHeadingProps>(
-  function SubsectionHeading({ title, action, level = 3, className, ...rest }, ref) {
+  function SubsectionHeading({ title, action, level = 3, headingId, className, ...rest }, ref) {
     const Heading = `h${level}` as const;
     return (
       <div ref={ref} {...rest} className={cx(styles.subheading, className)}>
-        <Heading className={styles.subtitle}>{title}</Heading>
+        <Heading id={headingId} className={styles.subtitle}>
+          {title}
+        </Heading>
         {hasSlot(action) && <div className={styles.action}>{action}</div>}
       </div>
     );
