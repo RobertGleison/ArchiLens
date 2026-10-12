@@ -8,6 +8,7 @@ import {
 import { Link, type LinkProps } from 'react-router-dom';
 import { cx } from './cx';
 import { ICON_SIZE } from './icon';
+import { useLiveRole } from './liveRegion';
 import type { IconComponent } from './iconTypes';
 import { omit } from './omit';
 import { Spinner } from './Spinner';
@@ -35,7 +36,8 @@ interface ButtonOwnProps {
  * a visually hidden sibling `<span role="status">` after the `<button>`, empty until loading, so the
  * live region exists before its text appears (regions created already filled are often not read).
  * It is absolutely positioned and takes no space, but it is a DOM sibling: mind `:last-child` /
- * `+` selectors in containers. Buttons without `loading` render no extra element.
+ * `+` selectors in containers. Buttons without `loading` render no extra element. Inside an
+ * existing live region (`LiveRegionContext`) the span has no role: that region announces it.
  */
 export type ButtonAsButtonProps = ButtonOwnProps &
   Omit<ComponentPropsWithoutRef<'button'>, keyof ButtonOwnProps> & {
@@ -75,6 +77,9 @@ const OWN_PROPS = ['variant', 'size', 'icon', 'children', 'className'] as const;
  */
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
   function Button(props, ref) {
+    // The loading announcement joins an enclosing live region (e.g. an ErrorState) instead of
+    // nesting a second one.
+    const statusRole = useLiveRole('status');
     const { variant = 'secondary', size = 'md', icon: Icon, children, className } = props;
     const classes = cx(styles.button, styles[variant], size === 'sm' && styles.sm, className);
     const data = { 'data-variant': variant, 'data-size': size };
@@ -155,7 +160,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
           {content(busy)}
         </button>
         {loading !== undefined && (
-          <span role="status" className={a11y.visuallyHidden}>
+          <span role={statusRole} className={a11y.visuallyHidden}>
             {busy ? 'Loading' : ''}
           </span>
         )}

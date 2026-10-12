@@ -37,16 +37,32 @@ describe('skeletons', () => {
     expect(screen.getByTestId('region')).toHaveTextContent('Loading');
   });
 
-  it('line table rows up with the column widths (last fixed column flexes)', () => {
-    const { container } = render(<SkeletonTableRows rows={2} columns={[200, undefined, 100]} />);
+  it('line table rows up with the column widths', () => {
+    const { container } = render(
+      <SkeletonTableRows rows={2} columns={[{ width: 200 }, {}, { width: 100 }]} />,
+    );
     expect(screen.getByRole('status')).toHaveStyle({
       '--skeleton-columns': '200px minmax(0, 1fr) 100px',
     });
     expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(6);
+  });
 
-    const { getAllByRole } = render(<SkeletonTableRows columns={[200, 100]} />);
-    expect(getAllByRole('status')[1]).toHaveStyle({
+  it('lets the last column flex when every column has a width', () => {
+    render(<SkeletonTableRows columns={[{ width: 200 }, { width: 100 }]} />);
+    expect(screen.getByRole('status')).toHaveStyle({
       '--skeleton-columns': '200px minmax(0, 1fr)',
     });
+  });
+
+  it('insets the first column for selection and right-aligns end columns', () => {
+    const { container } = render(
+      <SkeletonTableRows rows={1} selectable columns={[{}, { align: 'end' }]} />,
+    );
+    const row = container.querySelector('[role="status"] > div');
+    const [first, second] = Array.from(row?.children ?? []);
+    // Checkbox block, then the bar's line box.
+    expect(first?.children).toHaveLength(2);
+    expect(second?.className).toMatch(/end/);
+    expect(first?.querySelector('[class*="end"]')).toBeNull();
   });
 });

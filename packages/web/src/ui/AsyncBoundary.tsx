@@ -4,7 +4,10 @@ import type { ReactNode } from 'react';
 export type AsyncStatus = 'loading' | 'error' | 'empty' | 'ready';
 
 export interface AsyncStatusInput {
-  /** A request is in flight (first load or retry). */
+  /**
+   * There is no data to show yet: the first load, or a retry after an error. Not a background
+   * refetch of data already on screen; keep showing that data (`ready`) instead of a skeleton.
+   */
   isLoading: boolean;
   /** The last request failed (any truthy value). */
   error?: unknown;
@@ -14,7 +17,8 @@ export interface AsyncStatusInput {
 
 /**
  * Derives an `AsyncStatus`. An error wins over loading, so a retry keeps the error state on screen
- * (pass `retrying={isLoading}` to its `ErrorState`) instead of flashing back to the skeleton.
+ * (pass `retrying={isLoading}` to its `ErrorState`, and a `key` that changes per failure so a
+ * repeated failure is announced again) instead of flashing back to the skeleton.
  */
 export function getAsyncStatus({
   isLoading,
@@ -49,7 +53,14 @@ export interface AsyncBoundaryProps {
  * <AsyncBoundary
  *   state={getAsyncStatus({ isLoading, error, isEmpty: repos?.length === 0 })}
  *   loading={<SkeletonCard />}
- *   error={<ErrorState message="Couldn't load repositories." onRetry={refetch} retrying={isLoading} />}
+ *   error={
+ *     <ErrorState
+ *       key={failureCount}
+ *       message="Couldn't load repositories."
+ *       onRetry={refetch}
+ *       retrying={isLoading}
+ *     />
+ *   }
  *   empty={<EmptyState icon={FolderGit2} title="No repositories monitored yet" />}
  * >
  *   {() => <RepoList repos={repos!} />}

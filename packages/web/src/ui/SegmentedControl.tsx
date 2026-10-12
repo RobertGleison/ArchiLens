@@ -8,6 +8,7 @@ import {
   useId,
 } from 'react';
 import { cx } from './cx';
+import { warnOnce } from './devWarning';
 import { fieldControlId, useField, useFieldGroupLabel } from './Field';
 import styles from './SegmentedControl.module.css';
 import a11y from './visuallyHidden.module.css';
@@ -72,8 +73,8 @@ function SegmentedControlInner<V extends string>(
   const groupName = name ?? `${uid}-segmented`;
   const disabled = disabledProp ?? field?.disabled ?? false;
   const named = rest['aria-label'] !== undefined || rest['aria-labelledby'] !== undefined;
-  if (import.meta.env.DEV && !named && !field) {
-    console.warn('SegmentedControl needs aria-label, aria-labelledby or an enclosing Field.');
+  if (!named && !field) {
+    warnOnce('SegmentedControl needs aria-label, aria-labelledby or an enclosing Field.');
   }
   return (
     <div

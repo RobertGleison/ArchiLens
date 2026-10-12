@@ -56,6 +56,12 @@ export interface CardProps extends Omit<ComponentPropsWithoutRef<'section'>, 'ti
 /**
  * Bordered section card (Figma 3:12730): white, 1px border, radius 8, padding 20, 16px column
  * gap, no shadow. Pass `title` / `description` / `action` to render its `SectionHeading`.
+ *
+ * Data-backed content: keep the card (and its title) and switch only the body with
+ * `<Card title="…"><AsyncBoundary state={…} loading={<SkeletonText lines={3} />}
+ * error={<ErrorState … />} empty={<EmptyState … />}>…</AsyncBoundary></Card>`. Use `SkeletonCard`
+ * instead of the whole card when even its heading is unknown; never nest it inside a `Card` (it
+ * draws its own frame).
  */
 export const Card = forwardRef<HTMLElement, CardProps>(function Card(
   { title, description, action, headingLevel = 2, as, className, children, ...rest },

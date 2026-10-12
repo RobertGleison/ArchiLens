@@ -26,6 +26,13 @@ export interface FullEmptyStateProps extends Omit<ComponentPropsWithoutRef<'div'
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
   /** Extra content between the description and the action (e.g. an error detail). */
   children?: ReactNode;
+  /**
+   * Props for the wrapper around the title and description, e.g. `role="alert"` so only the
+   * message (not the actions) is announced.
+   */
+  messageProps?: ComponentPropsWithoutRef<'div'>;
+  /** Ref and `tabIndex` for the title, e.g. to move focus to it (`tabIndex={-1}`). */
+  titleProps?: { ref?: Ref<HTMLElement>; tabIndex?: number };
 }
 
 export interface CompactEmptyStateProps extends ComponentPropsWithoutRef<'p'> {
@@ -53,7 +60,17 @@ export const EmptyState = forwardRef<HTMLDivElement | HTMLParagraphElement, Empt
         />
       );
     }
-    const { icon: Icon, title, description, action, headingLevel, className, children } = props;
+    const {
+      icon: Icon,
+      title,
+      description,
+      action,
+      headingLevel,
+      className,
+      children,
+      messageProps,
+      titleProps,
+    } = props;
     const rest = omit(props, [
       'variant',
       'icon',
@@ -63,13 +80,23 @@ export const EmptyState = forwardRef<HTMLDivElement | HTMLParagraphElement, Empt
       'headingLevel',
       'className',
       'children',
+      'messageProps',
+      'titleProps',
     ]);
     const Title = headingLevel ? (`h${headingLevel}` as const) : 'p';
     return (
       <div ref={ref as Ref<HTMLDivElement>} {...rest} className={cx(styles.full, className)}>
         <Icon size={ICON_SIZE.empty} aria-hidden className={styles.icon} />
-        <Title className={styles.title}>{title}</Title>
-        {hasSlot(description) && <p className={styles.description}>{description}</p>}
+        <div {...messageProps} className={cx(styles.message, messageProps?.className)}>
+          <Title
+            ref={titleProps?.ref as Ref<HTMLHeadingElement>}
+            tabIndex={titleProps?.tabIndex}
+            className={styles.title}
+          >
+            {title}
+          </Title>
+          {hasSlot(description) && <p className={styles.description}>{description}</p>}
+        </div>
         {children}
         {hasSlot(action) && <div className={styles.action}>{action}</div>}
       </div>

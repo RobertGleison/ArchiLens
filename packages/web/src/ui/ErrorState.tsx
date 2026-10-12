@@ -1,10 +1,18 @@
 import { CircleAlert, RotateCw } from 'lucide-react';
-import { forwardRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useRef,
+  type ComponentPropsWithoutRef,
+  type ForwardedRef,
+  type ReactNode,
+} from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from './Button';
 import { cx } from './cx';
 import { EmptyState } from './EmptyState';
 import { ICON_SIZE } from './icon';
-import { useLiveRole } from './liveRegion';
+import { LiveRegionContext, useLiveRole } from './liveRegion';
 import { omit } from './omit';
 import { hasSlot } from './slot';
 import styles from './ErrorState.module.css';
@@ -14,7 +22,7 @@ interface ErrorStateBaseProps extends Omit<ComponentPropsWithoutRef<'div'>, 'tit
   onRetry: () => void;
   /**
    * The retry is in progress: the Retry button shows its spinner and stays focusable. Pass it
-   * (even `false`) to get the button's polite "Loading" announcement; omit it otherwise.
+   * (even `false`) to get a polite "Loading" announcement; omit it otherwise.
    */
   retrying?: boolean;
   /** Retry button label. Defaults to "Retry". */
@@ -34,17 +42,118 @@ export interface PageErrorStateProps extends ErrorStateBaseProps {
   description?: ReactNode;
   /** Technical detail under the description (muted mono), e.g. the error message. */
   detail?: ReactNode;
-  /** Target of the "Back to Overview" button. Defaults to `/`. */
+  /**
+   * Target of the "Back to Overview" button. Defaults to `/`. The button is hidden when the
+   * current location already is this path.
+   */
   backTo?: string;
   /** Label of the back button. Defaults to "Back to Overview". */
   backLabel?: string;
   /** Title heading level. Defaults to 1 (the state replaces the page). */
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
+  /** Move focus to the title when mounted (e.g. after a retry failed again). */
+  focusOnMount?: boolean;
 }
 
 export type ErrorStateProps = CardErrorStateProps | PageErrorStateProps;
 
 const BASE_PROPS = ['variant', 'onRetry', 'retrying', 'retryLabel', 'className'] as const;
+
+function RetryButton({
+  size,
+  onRetry,
+  retrying,
+  retryLabel = 'Retry',
+}: Pick<ErrorStateBaseProps, 'onRetry' | 'retrying' | 'retryLabel'> & { size: 'sm' | 'md' }) {
+  return (
+    <Button size={size} icon={RotateCw} onClick={onRetry} loading={retrying}>
+      {retryLabel}
+    </Button>
+  );
+}
+
+function PageErrorState(props: PageErrorStateProps, ref: ForwardedRef<HTMLDivElement>) {
+  const {
+    title,
+    description,
+    detail,
+    backTo = '/',
+    backLabel = 'Back to Overview',
+    headingLevel = 1,
+    focusOnMount = false,
+    className,
+  } = props;
+  const rest = omit(props, [
+    ...BASE_PROPS,
+    'title',
+    'description',
+    'detail',
+    'backTo',
+    'backLabel',
+    'headingLevel',
+    'focusOnMount',
+  ]);
+  const role = useLiveRole('alert');
+  const { pathname } = useLocation();
+  const titleRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (focusOnMount) titleRef.current?.focus();
+  }, [focusOnMount]);
+
+  return (
+    <EmptyState
+      ref={ref}
+      {...rest}
+      className={cx(styles.page, className)}
+      icon={CircleAlert}
+      title={title}
+      description={description}
+      headingLevel={headingLevel}
+      // Only the message is the alert; the actions are not read out with it.
+      messageProps={{ role }}
+      titleProps={{ ref: titleRef, tabIndex: -1 }}
+      action={
+        <>
+          <RetryButton
+            size="md"
+            onRetry={props.onRetry}
+            retrying={props.retrying}
+            retryLabel={props.retryLabel}
+          />
+          {pathname !== backTo && <Button to={backTo}>{backLabel}</Button>}
+        </>
+      }
+    >
+      {hasSlot(detail) && <p className={styles.detail}>{detail}</p>}
+    </EmptyState>
+  );
+}
+
+const ForwardedPageErrorState = forwardRef(PageErrorState);
+
+function CardErrorState(props: CardErrorStateProps, ref: ForwardedRef<HTMLDivElement>) {
+  const { message, className } = props;
+  const rest = omit(props, [...BASE_PROPS, 'message']);
+  const role = useLiveRole('alert');
+  return (
+    <div ref={ref} role={role} {...rest} className={cx(styles.card, className)}>
+      {/* One region: the Retry button's "Loading" joins this alert instead of nesting a status. */}
+      <LiveRegionContext.Provider value>
+        <CircleAlert size={ICON_SIZE.notice} aria-hidden className={styles.icon} />
+        <div className={styles.message}>{message}</div>
+        <RetryButton
+          size="sm"
+          onRetry={props.onRetry}
+          retrying={props.retrying}
+          retryLabel={props.retryLabel}
+        />
+      </LiveRegionContext.Provider>
+    </div>
+  );
+}
+
+const ForwardedCardErrorState = forwardRef(CardErrorState);
 
 /**
  * "Something failed" (LIN-87; Figma draws no error screen, so it is derived from the context
@@ -53,71 +162,24 @@ const BASE_PROPS = ['variant', 'onRetry', 'retrying', 'retryLabel', 'className']
  *
  * - `card` (default), for a card or table area: a notice-style block on the neutral subtle fill
  *   (radius 6, padding 14, gap 10), 18px `circle-alert` ink icon, 12px ink message and a small
- *   secondary Retry button (`rotate-cw`).
+ *   secondary Retry button (`rotate-cw`). The whole block is the `role="alert"` region.
  * - `page`, for a failed route: `EmptyState` with `circle-alert`, title, description, Retry and a
- *   secondary "Back to Overview" button.
+ *   secondary "Back to Overview" button (needs a router). Only the title + description are the
+ *   alert.
  *
- * Announced with `role="alert"` when it appears, except inside a live region
- * (`LiveRegionContext`, e.g. DataTable's state area), which announces it instead.
+ * The alert role is dropped inside an existing live region (`LiveRegionContext`, e.g. DataTable's
+ * state area), which announces the error instead.
+ *
+ * Re-announcing: an alert is read when it appears or its text changes. A retry that fails with the
+ * same message changes nothing, so give the ErrorState a `key` that changes per failure (e.g. a
+ * failure counter) to remount it and have it read again.
  */
 export const ErrorState = forwardRef<HTMLDivElement, ErrorStateProps>(
   function ErrorState(props, ref) {
-    const role = useLiveRole('alert');
-    const retry = (size: 'sm' | 'md') => (
-      <Button size={size} icon={RotateCw} onClick={props.onRetry} loading={props.retrying}>
-        {props.retryLabel ?? 'Retry'}
-      </Button>
-    );
-
-    if (props.variant === 'page') {
-      const {
-        title,
-        description,
-        detail,
-        backTo = '/',
-        backLabel = 'Back to Overview',
-        headingLevel = 1,
-        className,
-      } = props;
-      const rest = omit(props, [
-        ...BASE_PROPS,
-        'title',
-        'description',
-        'detail',
-        'backTo',
-        'backLabel',
-        'headingLevel',
-      ]);
-      return (
-        <EmptyState
-          ref={ref}
-          role={role}
-          {...rest}
-          className={cx(styles.page, className)}
-          icon={CircleAlert}
-          title={title}
-          description={description}
-          headingLevel={headingLevel}
-          action={
-            <>
-              {retry('md')}
-              <Button to={backTo}>{backLabel}</Button>
-            </>
-          }
-        >
-          {hasSlot(detail) && <p className={styles.detail}>{detail}</p>}
-        </EmptyState>
-      );
-    }
-
-    const { message, className } = props;
-    const rest = omit(props, [...BASE_PROPS, 'message']);
-    return (
-      <div ref={ref} role={role} {...rest} className={cx(styles.card, className)}>
-        <CircleAlert size={ICON_SIZE.notice} aria-hidden className={styles.icon} />
-        <div className={styles.message}>{message}</div>
-        {retry('sm')}
-      </div>
+    return props.variant === 'page' ? (
+      <ForwardedPageErrorState ref={ref} {...props} />
+    ) : (
+      <ForwardedCardErrorState ref={ref} {...props} />
     );
   },
 );

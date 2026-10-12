@@ -18,6 +18,13 @@
   color: var(--color-ink-muted);
 }
 
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+}
+
 .title {
   composes: body from '../styles/typography.module.css';
   margin: 0;
@@ -42,4 +49,9 @@
   composes: bodySm from '../styles/typography.module.css';
   margin: 0;
   color: var(--color-ink-muted);
+}
+
+/* A title focused programmatically (e.g. after a failed retry) is not a control: no ring. */
+.title[tabindex='-1']:focus {
+  outline: none;
 }

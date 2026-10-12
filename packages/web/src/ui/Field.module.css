@@ -17,8 +17,15 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* Derived: dim the label while the control is disabled (by the Field or on its own). */
-.field:has(:disabled) > .label {
+/*
+ * Derived: dim the label while the control itself is disabled (by the Field or on its own). Not
+ * for a single disabled radio / <option>: a radio group counts only when the whole group is.
+ */
+.field:has(
+    :is(input:not([type='radio']), select, textarea, button):disabled,
+    [role='radiogroup'][aria-disabled='true']
+  )
+  > .label {
   opacity: var(--opacity-disabled);
 }
 

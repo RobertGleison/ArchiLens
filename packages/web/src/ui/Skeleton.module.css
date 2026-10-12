@@ -32,6 +32,10 @@
   height: calc(var(--skeleton-font-size) * var(--line-height-default));
 }
 
+.end {
+  justify-content: flex-end;
+}
+
 .line > .block {
   height: var(--skeleton-font-size);
 }
@@ -91,4 +95,24 @@
   height: var(--size-table-row-min);
   padding: 0 var(--space-12);
   border-bottom: var(--border-default);
+}
+
+/* Selection (3:13066): the 16px checkbox, 10px before the first column's content. */
+.selectionCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+}
+
+.selectionCell > .line {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+  border-radius: var(--radius-xs);
 }

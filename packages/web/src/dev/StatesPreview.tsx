@@ -143,9 +143,16 @@ export function StatesPreview() {
         <SkeletonCard />
       </div>
 
-      <Caption>SkeletonTableRows (stand-alone; DataTable uses it under its header)</Caption>
+      <Caption>
+        SkeletonTableRows (stand-alone, with selection and an end-aligned column; DataTable uses it
+        under its header)
+      </Caption>
       <div className={styles.mainColumn}>
-        <SkeletonTableRows rows={2} columns={[246, 132, 124, 100]} />
+        <SkeletonTableRows
+          rows={2}
+          selectable
+          columns={[{ width: 246 }, { width: 132 }, { width: 124 }, { width: 100, align: 'end' }]}
+        />
       </div>
 
       <Caption>Spinner: 12px in pills / buttons (see StatusPill, Button); 18px stand-alone</Caption>
@@ -172,7 +179,6 @@ export function StatesPreview() {
           detail="TypeError: Cannot read properties of undefined (reading 'modules')"
           onRetry={retry}
           retrying={retrying}
-          backTo="/__components"
         />
       </Card>
 

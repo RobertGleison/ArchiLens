@@ -28,7 +28,9 @@ describe('ErrorState', () => {
     render(<ErrorState message="Failed." onRetry={onRetry} retrying />);
     const retry = screen.getByRole('button', { name: 'Retry' });
     expect(retry).toHaveAttribute('aria-busy', 'true');
-    expect(screen.getByRole('status')).toHaveTextContent('Loading');
+    // One live region: the "Loading" text joins the alert instead of a nested status.
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(screen.getByRole('alert')).toHaveTextContent('Loading');
     await userEvent.click(retry);
     expect(onRetry).not.toHaveBeenCalled();
   });
@@ -46,7 +48,7 @@ describe('ErrorState', () => {
   it('page: an h1 title, detail, Retry and Back to Overview', async () => {
     const onRetry = vi.fn();
     render(
-      <MemoryRouter future={ROUTER_FUTURE}>
+      <MemoryRouter initialEntries={['/reports']} future={ROUTER_FUTURE}>
         <ErrorState
           variant="page"
           title="Something went wrong"
@@ -56,14 +58,26 @@ describe('ErrorState', () => {
         />
       </MemoryRouter>,
     );
+    // Only the title + description are the alert; the actions are outside it.
     const alert = screen.getByRole('alert');
+    expect(alert).toHaveTextContent(/^Something went wrongThis page failed to load\.$/);
     expect(alert).toContainElement(
       screen.getByRole('heading', { level: 1, name: 'Something went wrong' }),
     );
-    expect(alert.querySelector('svg')).toHaveAttribute('width', '28');
+    expect(alert.parentElement?.querySelector('svg')).toHaveAttribute('width', '28');
     expect(screen.getByText('kaboom')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to Overview' })).toHaveAttribute('href', '/');
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('page: hides Back to Overview on that page and can focus its title on mount', () => {
+    render(
+      <MemoryRouter future={ROUTER_FUTURE}>
+        <ErrorState variant="page" title="Something went wrong" onRetry={() => {}} focusOnMount />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('link', { name: 'Back to Overview' })).toBeNull();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveFocus();
   });
 });

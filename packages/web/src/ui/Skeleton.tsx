@@ -61,11 +61,13 @@ function Lines({
   lines,
   width,
   lastLineWidth,
+  align = 'start',
 }: {
   size: SkeletonTextSize;
   lines: number;
   width?: Width;
   lastLineWidth?: Width;
+  align?: 'start' | 'end';
 }) {
   return (
     <>
@@ -73,7 +75,11 @@ function Lines({
         const last = i === lines - 1 && lines > 1;
         const w = last ? (lastLineWidth ?? '60%') : width;
         return (
-          <span key={i} aria-hidden className={cx(styles.line, styles[size])}>
+          <span
+            key={i}
+            aria-hidden
+            className={cx(styles.line, styles[size], align === 'end' && styles.end)}
+          >
             <span className={styles.block} style={w !== undefined ? { width: cssWidth(w) } : {}} />
           </span>
         );
@@ -156,14 +162,24 @@ export const SkeletonCard = forwardRef<HTMLDivElement, SkeletonCardProps>(functi
 /** Widths the bars cycle through, so rows read as text rather than a solid grid. */
 const CELL_WIDTHS = ['70%', '50%', '60%', '40%'];
 
+/** The parts of a `DataTableColumn` the skeleton needs. */
+export interface SkeletonTableColumn {
+  /** Content width in px (`undefined`: flexible), as in `DataTableColumn.width`. */
+  width?: number;
+  /** `end` right-aligns the bar, as in `DataTableColumn.align`. */
+  align?: 'start' | 'end';
+}
+
 export interface SkeletonTableRowsProps extends SkeletonRootProps {
   /** Number of 60px rows. Defaults to 3. */
   rows?: number;
   /**
-   * Column count, or each column's content width in px as in `DataTableColumn.width` (`undefined`
-   * for a flexible column) so the bars line up with the real header. Defaults to 4.
+   * Column count, or the columns (a `DataTableColumn[]` fits) so the bars line up with the real
+   * header. Defaults to 4 flexible columns.
    */
-  columns?: number | readonly (number | undefined)[];
+  columns?: number | readonly SkeletonTableColumn[];
+  /** Rows have selection: a 16px checkbox block + 10px gap before the first column's bar. */
+  selectable?: boolean;
 }
 
 /**
@@ -171,13 +187,18 @@ export interface SkeletonTableRowsProps extends SkeletonRootProps {
  * borders. `DataTable` renders it under its real header while `loading` (no `loadingState`).
  */
 export const SkeletonTableRows = forwardRef<HTMLDivElement, SkeletonTableRowsProps>(
-  function SkeletonTableRows({ rows = 3, columns = 4, className, ...rest }, ref) {
-    const widths =
-      typeof columns === 'number' ? Array<undefined>(columns).fill(undefined) : columns;
-    const allFixed = widths.every((w) => w !== undefined);
-    const template = widths
-      .map((w, i) =>
-        w === undefined || (allFixed && i === widths.length - 1) ? 'minmax(0, 1fr)' : `${w}px`,
+  function SkeletonTableRows(
+    { rows = 3, columns = 4, selectable = false, className, ...rest },
+    ref,
+  ) {
+    const cols: readonly SkeletonTableColumn[] =
+      typeof columns === 'number' ? Array.from({ length: columns }, () => ({})) : columns;
+    const allFixed = cols.every((c) => c.width !== undefined);
+    const template = cols
+      .map(({ width }, i) =>
+        width === undefined || (allFixed && i === cols.length - 1)
+          ? 'minmax(0, 1fr)'
+          : `${width}px`,
       )
       .join(' ');
     return (
@@ -189,9 +210,25 @@ export const SkeletonTableRows = forwardRef<HTMLDivElement, SkeletonTableRowsPro
       >
         {Array.from({ length: rows }, (_, row) => (
           <div key={row} className={styles.tableRow}>
-            {widths.map((_, col) => (
-              <Lines key={col} size="sm" lines={1} width={CELL_WIDTHS[(row + col) % 4]} />
-            ))}
+            {cols.map(({ align }, col) => {
+              const bar = (
+                <Lines
+                  key={col}
+                  size="sm"
+                  lines={1}
+                  width={CELL_WIDTHS[(row + col) % 4]}
+                  align={align}
+                />
+              );
+              return selectable && col === 0 ? (
+                <div key={col} className={styles.selectionCell}>
+                  <span aria-hidden className={cx(styles.block, styles.checkbox)} />
+                  {bar}
+                </div>
+              ) : (
+                bar
+              );
+            })}
           </div>
         ))}
       </SkeletonRoot>

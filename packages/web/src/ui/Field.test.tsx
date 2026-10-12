@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Search } from 'lucide-react';
@@ -56,14 +59,19 @@ describe('Field', () => {
 
   it("always uses the Field's control id and warns when the control has another", () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    render(
+    const ui = (
       <Field label="Branch" controlId="branch">
         <TextInput id="other" />
-      </Field>,
+      </Field>
     );
+    const { rerender } = render(ui);
     const input = screen.getByRole('textbox', { name: 'Branch' });
     expect(input).toHaveAttribute('id', 'branch');
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"other" is ignored'));
+    rerender(ui);
+    // Once, not on every render.
+    expect(warn.mock.calls.filter(([m]) => String(m).includes('"other" is ignored'))).toHaveLength(
+      1,
+    );
   });
 
   it('passes disabled to a Select', () => {
@@ -218,5 +226,59 @@ describe('TextInput / Select / Textarea', () => {
   it('respects an explicit aria-invalid outside a Field', () => {
     render(<TextInput aria-label="Cron" aria-invalid="false" />);
     expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-invalid');
+  });
+});
+
+describe('Field disabled label', () => {
+  // The `:has(…)` condition of the label-dimming rule in Field.module.css, checked against the DOM.
+  const fieldCss = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), 'Field.module.css'),
+    'utf8',
+  );
+  const condition = /\.field(:has\([\s\S]*?\))\s*>\s*\.label\s*\{/.exec(fieldCss)?.[1];
+  const dims = (container: HTMLElement) =>
+    (container.firstElementChild as HTMLElement).matches(condition ?? ':not(*)');
+
+  it('finds the rule', () => {
+    expect(condition).toBeDefined();
+  });
+
+  it('dims for a disabled control or a disabled radio group', () => {
+    const { container } = render(
+      <Field label="Notes" disabled>
+        <Textarea />
+      </Field>,
+    );
+    expect(dims(container)).toBe(true);
+
+    const group = render(
+      <Field label="Detail" disabled>
+        <SegmentedControl
+          value="a"
+          onValueChange={() => {}}
+          options={[
+            { value: 'a', label: 'A' },
+            { value: 'b', label: 'B' },
+          ]}
+        />
+      </Field>,
+    );
+    expect(dims(group.container)).toBe(true);
+  });
+
+  it('does not dim for one disabled option of an enabled group', () => {
+    const { container } = render(
+      <Field label="Detail">
+        <SegmentedControl
+          value="a"
+          onValueChange={() => {}}
+          options={[
+            { value: 'a', label: 'A' },
+            { value: 'b', label: 'B', disabled: true },
+          ]}
+        />
+      </Field>,
+    );
+    expect(dims(container)).toBe(false);
   });
 });

@@ -294,13 +294,17 @@ describe('DataTable', () => {
         columns={COLUMNS}
         rows={[]}
         getRowId={getRowId}
-        errorState={<ErrorState message="Could not load scans" onRetry={onRetry} />}
+        errorState={<ErrorState message="Could not load scans" onRetry={onRetry} retrying />}
       />,
     );
     expect(screen.queryByRole('alert')).toBeNull();
+    // Exactly one region, holding the message and the Retry button's "Loading".
+    expect(screen.getAllByRole('status')).toHaveLength(1);
     expect(screen.getByRole('status')).toHaveTextContent('Could not load scans');
+    expect(screen.getByRole('status')).toHaveTextContent('Loading');
+    // Inert while retrying.
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(onRetry).not.toHaveBeenCalled();
   });
 });
 

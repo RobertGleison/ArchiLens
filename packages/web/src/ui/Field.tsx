@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { cx } from './cx';
+import { warnOnce } from './devWarning';
 import { ICON_SIZE } from './icon';
 import { hasSlot } from './slot';
 import styles from './Field.module.css';
@@ -48,8 +49,8 @@ export function fieldControlId(
   ownId: string | undefined,
 ): string | undefined {
   if (!field) return ownId;
-  if (import.meta.env.DEV && ownId !== undefined && ownId !== field.controlId) {
-    console.warn(
+  if (ownId !== undefined && ownId !== field.controlId) {
+    warnOnce(
       `Field: the control's id "${ownId}" is ignored; pass controlId="${ownId}" to the Field instead.`,
     );
   }

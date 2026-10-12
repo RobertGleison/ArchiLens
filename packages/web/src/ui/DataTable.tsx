@@ -184,7 +184,11 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
   const showPlaceholder = loading || hasError || rows.length === 0;
   const skeleton = loading && loadingState === undefined;
   const placeholder = skeleton ? (
-    <SkeletonTableRows rows={placeholderRows} columns={columns.map((column) => column.width)} />
+    <SkeletonTableRows
+      rows={placeholderRows}
+      columns={columns}
+      selectable={selection !== undefined}
+    />
   ) : loading ? (
     loadingState
   ) : hasError ? (
