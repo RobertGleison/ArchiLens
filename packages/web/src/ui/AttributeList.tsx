@@ -8,9 +8,24 @@ import styles from './AttributeList.module.css';
  * none after the last. Items are `AttributeListItem`s. Put an optional trailing link (e.g. "View
  * scan log & full provenance →") after the list.
  */
-export const AttributeList = forwardRef<HTMLDListElement, ComponentPropsWithoutRef<'dl'>>(
-  function AttributeList({ className, ...rest }, ref) {
-    return <dl ref={ref} {...rest} className={cx(styles.list, className)} />;
+export interface AttributeListProps extends ComponentPropsWithoutRef<'dl'> {
+  /**
+   * Space between an item's value and its divider: `default` 10px (Analysis provenance 3:14078),
+   * `compact` 6px (System profile 3:13379).
+   */
+  density?: 'default' | 'compact';
+}
+
+export const AttributeList = forwardRef<HTMLDListElement, AttributeListProps>(
+  function AttributeList({ density = 'default', className, ...rest }, ref) {
+    return (
+      <dl
+        ref={ref}
+        {...rest}
+        className={cx(styles.list, density === 'compact' && styles.compact, className)}
+        data-density={density}
+      />
+    );
   },
 );
 

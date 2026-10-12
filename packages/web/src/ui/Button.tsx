@@ -30,8 +30,10 @@ interface ButtonOwnProps {
 
 /**
  * A `<button>`. `loading` shows a spinner and makes the button inert without disabling it (so it
- * keeps focus): `aria-disabled`, `aria-busy`, clicks swallowed. Pass `loading={false}` up front on
- * buttons that can load, so the polite "Loading" announcement region exists before it is needed.
+ * keeps focus): `aria-disabled`, `aria-busy`, clicks swallowed. The button form always renders a
+ * visually hidden sibling `<span role="status">` after the `<button>` (empty until loading), so the
+ * polite "Loading" announcement region exists before it is needed. It is absolutely positioned and
+ * takes no space, but it is a DOM sibling: mind `:last-child` / `+` selectors in containers.
  */
 export type ButtonAsButtonProps = ButtonOwnProps &
   Omit<ComponentPropsWithoutRef<'button'>, keyof ButtonOwnProps> & {
@@ -143,18 +145,16 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
           {...rest}
           className={classes}
           disabled={disabled}
-          aria-disabled={(!disabled && busy) || undefined}
+          aria-disabled={(!disabled && busy) || rest['aria-disabled']}
           aria-busy={busy || undefined}
           onClick={handleClick}
           {...data}
         >
           {content(busy)}
         </button>
-        {loading !== undefined && (
-          <span role="status" className={a11y.visuallyHidden}>
-            {busy ? 'Loading' : ''}
-          </span>
-        )}
+        <span role="status" className={a11y.visuallyHidden}>
+          {busy ? 'Loading' : ''}
+        </span>
       </>
     );
   },

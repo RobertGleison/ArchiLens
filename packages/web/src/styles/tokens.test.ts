@@ -31,6 +31,7 @@ const EXPECTED: Record<string, string> = {
 
   '--font-size-display': '30px',
   '--font-size-display-sm': '28px',
+  '--font-size-stat-sm': '26px',
   '--font-size-title': '16px',
   '--font-size-body-lg': '14px',
   '--font-size-body': '13px',

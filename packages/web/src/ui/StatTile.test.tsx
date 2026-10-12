@@ -32,6 +32,11 @@ describe('StatTile', () => {
     expect(tile).toHaveAttribute('data-tone', 'accent');
   });
 
+  it('gives the filled variant an ink value by default', () => {
+    render(<StatTile variant="filled" label="Removed components" value="0" />);
+    expect(screen.getByRole('term').parentElement).toHaveAttribute('data-tone', 'ink');
+  });
+
   it('renders a 0 value', () => {
     render(<StatTile label="Removed" value={0} />);
     expect(screen.getByRole('definition')).toHaveTextContent('0');

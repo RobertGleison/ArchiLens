@@ -342,7 +342,7 @@ export function ComponentPreview() {
         <div className={styles.tileRow}>
           <StatTile variant="filled" tone="accent" label="Components & integrations" value="+4" />
           <StatTile variant="filled" tone="accent" label="Communication boundary" value="1" />
-          <StatTile variant="filled" label="Removed components" value="0" />
+          <StatTile variant="filled" tone="accent" label="Removed components" value="0" />
         </div>
       </Block>
 
@@ -449,6 +449,17 @@ export function ComponentPreview() {
                 View scan log & full provenance
               </TextLink>
             </div>
+          </Card>
+          <Card title="System profile" description="Evidence-backed architectural model">
+            <AttributeList density="compact">
+              <AttributeListItem label="Application stack">
+                Node.js 22 · NestJS 10 · TypeScript 5.6
+              </AttributeListItem>
+              <AttributeListItem label="Data stores">PostgreSQL 16 · Redis 7</AttributeListItem>
+              <AttributeListItem label="Deployment topology">
+                ECS Fargate · 3 tasks · AWS eu-west-1
+              </AttributeListItem>
+            </AttributeList>
           </Card>
           <Card title="In this report">
             <AnchorList

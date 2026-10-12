@@ -19,6 +19,16 @@ describe('AttributeList', () => {
       'PostgreSQL 16',
     ]);
     expect(terms[0]?.closest('dl')).toHaveClass('x');
+    expect(terms[0]?.closest('dl')).toHaveAttribute('data-density', 'default');
+  });
+
+  it('supports the compact density', () => {
+    render(
+      <AttributeList density="compact">
+        <AttributeListItem label="Data stores">PostgreSQL 16</AttributeListItem>
+      </AttributeList>,
+    );
+    expect(screen.getByRole('term').closest('dl')).toHaveAttribute('data-density', 'compact');
   });
 });
 

@@ -35,6 +35,7 @@ interface TypeMeta {
 export const TYPE_META: Record<string, TypeMeta> = {
   display: { weights: ['semibold'], example: 'Overview' },
   'display-sm': { weights: ['semibold'], example: '$1,240 / mo' },
+  'stat-sm': { weights: ['semibold'], example: '+4' },
   title: { weights: ['semibold'], example: 'Recent reports' },
   'body-lg': { weights: ['semibold'], example: 'This report is out of date' },
   body: { weights: ['regular', 'semibold'], example: 'Architecture overview' },

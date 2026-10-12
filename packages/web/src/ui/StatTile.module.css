@@ -2,9 +2,10 @@
  * Stat tile.
  * - outlined, Figma 3:12713: 1px border, radius 8, padding 20, gap 5, no fill; label 12px muted,
  *   value 600 30px, helper 11px muted.
- * - filled, History comparison 3:14321: no border, radius 6, padding 14, gap 5, value above an
- *   11px ink label. Fill per the LIN-84 spec (subtle neutral); Figma draws these with the accent
- *   tint and a 26px value, the spec settles on the neutral fill and the 30px display size.
+ * - filled, History comparison 3:14321 / 3:14324 / 3:14327: accent tint, no border, radius 6,
+ *   padding 14, gap 5; value 600 26px above an 11px regular ink label. Figma draws every
+ *   comparison tile (including "0 Removed components") with the accent tint and an accent value,
+ *   so the fill is the same for both tones; `tone` only sets the value colour.
  */
 .tile {
   display: flex;
@@ -24,7 +25,7 @@
 .filled {
   padding: var(--space-14);
   border-radius: var(--radius-md);
-  background: var(--color-surface-subtle);
+  background: var(--color-accent-tint);
 }
 
 .label {
@@ -43,6 +44,10 @@
   margin: 0;
   color: var(--color-ink);
   white-space: nowrap;
+}
+
+.filled .value {
+  font-size: var(--font-size-stat-sm);
 }
 
 .accent {

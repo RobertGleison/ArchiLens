@@ -45,6 +45,7 @@
   /* Type scale (default weight in brackets; see TokenPreview for usage) */
   --font-size-display: 30px; /* [600] page title, stat tile value */
   --font-size-display-sm: 28px; /* [600] large inline figure */
+  --font-size-stat-sm: 26px; /* [600] filled (comparison) stat tile value */
   --font-size-title: 16px; /* [600] card/section title */
   --font-size-body-lg: 14px; /* [600] emphasized notice line */
   --font-size-body: 13px; /* [400; 600 active tab / option title] */

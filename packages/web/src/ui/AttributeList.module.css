@@ -1,7 +1,7 @@
 /*
  * Attribute list, Figma 3:14078 (Analysis provenance) / 3:13379 (System profile): items 16px
- * apart; each is label + value (gap 3) then a 1px divider 10px below (provenance; System profile
- * draws 6px, unified here), none after the last item.
+ * apart; each is label + value (gap 3) then a 1px divider 10px below (default) or 6px below
+ * (compact, System profile), none after the last item.
  */
 .list {
   display: flex;
@@ -16,6 +16,10 @@
   gap: var(--space-3);
   padding-bottom: var(--space-10);
   border-bottom: var(--border-default);
+}
+
+.compact .item {
+  padding-bottom: var(--space-6);
 }
 
 .item:last-child {

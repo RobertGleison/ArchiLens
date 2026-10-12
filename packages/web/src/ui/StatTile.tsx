@@ -14,10 +14,13 @@ export interface StatTileProps extends Omit<ComponentPropsWithoutRef<'dl'>, 'chi
   helper?: ReactNode;
   /**
    * `outlined` (default): bordered metric tile, label above the value (Overview, 3:12713).
-   * `filled`: borderless comparison tile, value above the label (History, 3:14321).
+   * `filled`: accent-tint comparison tile, 26px value above the label (History, 3:14321).
    */
   variant?: StatTileVariant;
-  /** Value colour: `ink` (default) or `accent` for highlighted values / positive deltas. */
+  /**
+   * Value colour: `ink` (default) or `accent` for highlighted values. Figma's History comparison
+   * tiles all use `accent` (including zero deltas); the fill does not change with tone.
+   */
   tone?: StatTileTone;
 }
 

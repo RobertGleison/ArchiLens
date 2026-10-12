@@ -137,12 +137,27 @@ describe('Button', () => {
     expect(button.querySelector('[data-spinner]')).not.toBeNull();
   });
 
-  it('has no busy state or status region unless it can load', () => {
+  it('has no busy state when not loading but always renders an empty status region', () => {
     render(<Button>Compare</Button>);
     const button = screen.getByRole('button');
     expect(button).not.toHaveAttribute('aria-busy');
     expect(button).not.toHaveAttribute('aria-disabled');
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('');
+    expect(button.nextElementSibling).toBe(status);
+  });
+
+  it("keeps a caller's aria-disabled when not loading", () => {
+    const { rerender } = render(<Button aria-disabled="true">Compare</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    rerender(
+      <Button aria-disabled="true" loading>
+        Compare
+      </Button>,
+    );
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    expect(button).toHaveAttribute('aria-busy', 'true');
   });
 
   it('renders a router link with `to`, never disabled or busy', () => {

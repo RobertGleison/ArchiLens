@@ -23,6 +23,12 @@
   line-height: var(--line-height-default);
 }
 
+:where(.statSm) {
+  font-size: var(--font-size-stat-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
 :where(.title) {
   font-size: var(--font-size-title);
   font-weight: var(--font-weight-semibold);
