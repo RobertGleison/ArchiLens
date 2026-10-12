@@ -34,7 +34,32 @@ describe('Tabs', () => {
     const panel = screen.getByRole('tabpanel', { name: 'Organizations (2)' });
     expect(panel).toHaveTextContent('Organizations panel');
     expect(orgs).toHaveAttribute('aria-controls', panel.id);
-    expect(screen.queryByText('Repositories panel')).not.toBeInTheDocument();
+    expect(screen.getByText('Repositories panel').closest('[role="tabpanel"]')).not.toBeVisible();
+    expect(screen.getAllByRole('tabpanel')).toHaveLength(1); // hidden panels are not exposed
+  });
+
+  it('keeps hidden panels mounted, so their state survives a switch', async () => {
+    const user = userEvent.setup();
+    render(
+      <Tabs defaultValue="a">
+        <TabList aria-label="Panels">
+          <Tab value="a">A</Tab>
+          <Tab value="b">B</Tab>
+        </TabList>
+        <TabPanel value="a">
+          <input aria-label="Draft" />
+        </TabPanel>
+        <TabPanel value="b" keepMounted={false}>
+          <input aria-label="Other" />
+        </TabPanel>
+      </Tabs>,
+    );
+    await user.type(screen.getByRole('textbox', { name: 'Draft' }), 'kept');
+    expect(screen.queryByRole('textbox', { name: 'Other' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'B' }));
+    expect(screen.getByRole('textbox', { name: 'Other' })).toBeVisible();
+    await user.click(screen.getByRole('tab', { name: 'A' }));
+    expect(screen.getByRole('textbox', { name: 'Draft' })).toHaveValue('kept');
   });
 
   it('has one tab stop: the selected tab', async () => {
@@ -94,17 +119,88 @@ describe('Tabs', () => {
     expect(screen.getByRole('tabpanel')).toHaveTextContent('B');
   });
 
-  it('keeps a tab stop when nothing is selected', () => {
+  it('selects the first enabled tab when uncontrolled without defaultValue', () => {
+    const onValueChange = vi.fn();
     render(
-      <Tabs>
-        <TabList aria-label="Empty">
-          <Tab value="a">A</Tab>
+      <Tabs onValueChange={onValueChange}>
+        <TabList aria-label="Default">
+          <Tab value="a" disabled>
+            A
+          </Tab>
           <Tab value="b">B</Tab>
+        </TabList>
+        <TabPanel value="b">B panel</TabPanel>
+      </Tabs>,
+    );
+    expect(screen.getByRole('tab', { name: 'B' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('B panel');
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps a tab stop on the first enabled tab when the selected tab is disabled', () => {
+    render(
+      <Tabs value="a">
+        <TabList aria-label="Fallback">
+          <Tab value="a" disabled>
+            A
+          </Tab>
+          <Tab value="b">B</Tab>
+          <Tab value="c">C</Tab>
         </TabList>
       </Tabs>,
     );
-    expect(screen.getByRole('tab', { name: 'A' })).toHaveAttribute('tabindex', '0');
-    expect(screen.getByRole('tab', { name: 'B' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('tab', { name: 'A' })).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByRole('tab', { name: 'B' })).toHaveAttribute('tabindex', '0');
+    expect(screen.getByRole('tab', { name: 'C' })).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('gives values with special characters distinct, valid ids', () => {
+    render(
+      <Tabs defaultValue="a b">
+        <TabList aria-label="Special">
+          <Tab value="a b">Space</Tab>
+          <Tab value="a_b">Underscore</Tab>
+          <Tab value="a/b">Slash</Tab>
+        </TabList>
+        <TabPanel value="a b">Space panel</TabPanel>
+        <TabPanel value="a_b">Underscore panel</TabPanel>
+        <TabPanel value="a/b">Slash panel</TabPanel>
+      </Tabs>,
+    );
+    const ids = screen.getAllByRole('tab').map((tab) => tab.id);
+    expect(new Set(ids).size).toBe(3);
+    for (const id of ids) expect(id).toMatch(/^[\w:-]+$/);
+    expect(screen.getByRole('tabpanel', { name: 'Space' })).toHaveTextContent('Space panel');
+  });
+
+  it('stays put when a controlled parent refuses the change', async () => {
+    const user = userEvent.setup();
+    const onValueChange = vi.fn();
+    render(
+      <Tabs value="a" onValueChange={onValueChange}>
+        <TabList aria-label="Locked">
+          <Tab value="a">A</Tab>
+          <Tab value="b">B</Tab>
+        </TabList>
+        <TabPanel value="a">A panel</TabPanel>
+        <TabPanel value="b">B panel</TabPanel>
+      </Tabs>,
+    );
+    await user.click(screen.getByRole('tab', { name: 'B' }));
+    expect(onValueChange).toHaveBeenCalledWith('b');
+    expect(screen.getByRole('tab', { name: 'A' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('A panel');
+  });
+
+  it('names tabs by their label only (the width-reserving copy is hidden)', () => {
+    render(
+      <Tabs>
+        <TabList aria-label="Names">
+          <Tab value="a">Reports (24)</Tab>
+        </TabList>
+      </Tabs>,
+    );
+    expect(screen.getByRole('tab', { name: 'Reports (24)' })).toBeInTheDocument();
   });
 });
 

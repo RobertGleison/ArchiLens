@@ -64,4 +64,16 @@ describe('PreferenceRow', () => {
     await user.click(screen.getByText('Skip unchanged runs'));
     expect(toggle).not.toBeChecked();
   });
+
+  it('merges a consumer aria-describedby with the description', () => {
+    render(
+      <>
+        <PreferenceRow title="Poll" description="Uses the schedule." aria-describedby="note" />
+        <p id="note">Public repositories only.</p>
+      </>,
+    );
+    expect(screen.getByRole('switch', { name: 'Poll' })).toHaveAccessibleDescription(
+      'Uses the schedule. Public repositories only.',
+    );
+  });
 });

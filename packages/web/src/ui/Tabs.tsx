@@ -33,6 +33,8 @@ interface TabsContextValue {
   baseId: string;
   value: string | null;
   select: (value: string) => void;
+  /** Uncontrolled with nothing selected yet: `TabList` picks its first enabled tab. */
+  selectInitial: ((value: string) => void) | null;
 }
 
 const TabsContext = createContext<TabsContextValue | null>(null);
@@ -43,13 +45,17 @@ function useTabs(component: string): TabsContextValue {
   return context;
 }
 
-/** DOM-safe id fragment for a tab value. */
-const idPart = (value: string) => value.replace(/[^\w-]/g, '_');
+/**
+ * DOM-safe id fragment for a tab value. Injective: every character outside [A-Za-z0-9-] (including
+ * `_`) becomes `_<hex code point>_`, so distinct values never share an id.
+ */
+const idPart = (value: string) =>
+  value.replace(/[^A-Za-z0-9-]/gu, (char) => `_${(char.codePointAt(0) ?? 0).toString(16)}_`);
 
 export interface TabsProps extends Omit<ComponentPropsWithoutRef<'div'>, 'defaultValue'> {
   /** Selected tab (controlled). */
   value?: string;
-  /** Initially selected tab (uncontrolled). */
+  /** Initially selected tab (uncontrolled); defaults to the first enabled tab. */
   defaultValue?: string;
   /** Called when the user selects a tab. */
   onValueChange?: (value: string) => void;
@@ -71,9 +77,10 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     },
     [value, selected, onValueChange],
   );
+  const selectInitial = value === undefined && uncontrolled === null ? setUncontrolled : null;
   return (
     <div ref={ref} {...rest}>
-      <TabsContext.Provider value={{ baseId, value: selected, select }}>
+      <TabsContext.Provider value={{ baseId, value: selected, select, selectInitial }}>
         {children}
       </TabsContext.Provider>
     </div>
@@ -99,7 +106,7 @@ export const TabList = forwardRef<HTMLDivElement, TabListProps>(function TabList
   ref,
 ) {
   // Subscribes to the selection, so the effect below re-runs when it changes.
-  useTabs('TabList');
+  const { selectInitial } = useTabs('TabList');
   const listRef = useRef<HTMLDivElement>(null);
   useImperativeHandle(ref, () => listRef.current as HTMLDivElement);
 
@@ -114,6 +121,10 @@ export const TabList = forwardRef<HTMLDivElement, TabListProps>(function TabList
     );
     const focusable = current ?? tabs.find((tab) => !tab.disabled);
     for (const tab of tabs) tab.tabIndex = tab === focusable ? 0 : -1;
+    // Uncontrolled without defaultValue: select the first enabled tab (not a user change, so no
+    // onValueChange).
+    const initial = focusable?.dataset.value;
+    if (selectInitial && initial !== undefined) selectInitial(initial);
   });
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -166,9 +177,24 @@ export interface TabProps extends Omit<ComponentPropsWithoutRef<'button'>, 'valu
   children: ReactNode;
 }
 
+/**
+ * The tab label, plus a hidden semibold copy that reserves the selected width, so selecting a tab
+ * (400 → 600) does not shift its neighbours. The copy is `aria-hidden` and out of the name.
+ */
+function TabLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className={styles.labelStack}>
+      <span className={styles.label}>{children}</span>
+      <span className={styles.labelReserve} aria-hidden>
+        {children}
+      </span>
+    </span>
+  );
+}
+
 /** One tab: padding 10/13, 2px bottom border; selected = accent 600 label and border. */
 export const Tab = forwardRef<HTMLButtonElement, TabProps>(function Tab(
-  { value, className, onClick, ...rest },
+  { value, className, onClick, children, ...rest },
   ref,
 ) {
   const tabs = useTabs('Tab');
@@ -182,28 +208,36 @@ export const Tab = forwardRef<HTMLButtonElement, TabProps>(function Tab(
       aria-selected={selected}
       aria-controls={`${tabs.baseId}-panel-${idPart(value)}`}
       tabIndex={selected ? 0 : -1}
+      data-value={value}
       {...rest}
       onClick={(event) => {
         onClick?.(event);
         if (!event.defaultPrevented) tabs.select(value);
       }}
       className={cx(styles.tab, className)}
-    />
+    >
+      <TabLabel>{children}</TabLabel>
+    </button>
   );
 });
 
 export interface TabPanelProps extends ComponentPropsWithoutRef<'div'> {
   /** The `Tab` value this panel belongs to. */
   value: string;
+  /**
+   * Keep the children mounted while the panel is hidden (default `true`), so local state such as
+   * typed input or scroll survives switching tabs. `false` unmounts them (e.g. heavy panels).
+   */
+  keepMounted?: boolean;
 }
 
 /**
  * Content for one tab (`role="tabpanel"`, labelled by its tab). Hidden panels stay in the DOM
- * (so `aria-controls` resolves) but render no children. Focusable (tabindex 0) so keyboard users
- * can reach panels without interactive content.
+ * with `hidden` (so `aria-controls` resolves), children mounted unless `keepMounted={false}`.
+ * Focusable (tabindex 0) so keyboard users can reach panels without interactive content.
  */
 export const TabPanel = forwardRef<HTMLDivElement, TabPanelProps>(function TabPanel(
-  { value, children, ...rest },
+  { value, keepMounted = true, className, children, ...rest },
   ref,
 ) {
   const tabs = useTabs('TabPanel');
@@ -217,8 +251,9 @@ export const TabPanel = forwardRef<HTMLDivElement, TabPanelProps>(function TabPa
       tabIndex={0}
       hidden={!selected}
       {...rest}
+      className={cx(styles.panel, className)}
     >
-      {selected ? children : null}
+      {selected || keepMounted ? children : null}
     </div>
   );
 });
@@ -245,8 +280,12 @@ export interface TabNavLinkProps extends Omit<NavLinkProps, 'className' | 'style
  * Pass `end` when the link's path is a prefix of sibling tabs' paths (e.g. an index tab).
  */
 export const TabNavLink = forwardRef<HTMLAnchorElement, TabNavLinkProps>(function TabNavLink(
-  { className, ...rest },
+  { className, children, ...rest },
   ref,
 ) {
-  return <NavLink ref={ref} {...rest} className={cx(styles.tab, className)} />;
+  return (
+    <NavLink ref={ref} {...rest} className={cx(styles.tab, className)}>
+      <TabLabel>{children}</TabLabel>
+    </NavLink>
+  );
 });

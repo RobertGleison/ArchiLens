@@ -17,6 +17,11 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* Derived: dim the label while the control is disabled (by the Field or on its own). */
+.field:has(:disabled) > .label {
+  opacity: var(--opacity-disabled);
+}
+
 .description,
 .error {
   composes: caption from '../styles/typography.module.css';

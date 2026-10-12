@@ -7,12 +7,13 @@ import {
   type ReactNode,
 } from 'react';
 import { cx } from './cx';
+import { fieldControlId, FieldReset, useField } from './Field';
 import { hasSlot } from './slot';
 import styles from './Switch.module.css';
 
 export interface SwitchProps extends Omit<
   ComponentPropsWithoutRef<'button'>,
-  'type' | 'role' | 'value' | 'defaultValue' | 'onChange'
+  'type' | 'role' | 'value' | 'defaultValue' | 'onChange' | 'name' | 'form'
 > {
   /** Controlled state. */
   checked?: boolean;
@@ -27,12 +28,27 @@ export interface SwitchProps extends Omit<
  * On: accent track, thumb right. Off (derived): border-grey track, thumb left. A
  * `<button role="switch" aria-checked>`, so Space and Enter toggle it; name it with `aria-label`,
  * `aria-labelledby` or a `<label htmlFor>` (see `PreferenceRow`). Works controlled (`checked` +
- * `onCheckedChange`) or uncontrolled (`defaultChecked`).
+ * `onCheckedChange`) or uncontrolled (`defaultChecked`). It does not submit with a form (no
+ * `name`); read the state from `onCheckedChange`.
+ *
+ * Inside a `Field` it takes the Field's `controlId` (so the Field label names it), help/error
+ * text as `aria-describedby`, and `disabled`.
  */
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
-  { checked, defaultChecked = false, onCheckedChange, onClick, className, ...rest },
+  {
+    checked,
+    defaultChecked = false,
+    onCheckedChange,
+    onClick,
+    className,
+    id,
+    disabled,
+    'aria-describedby': describedBy,
+    ...rest
+  },
   ref,
 ) {
+  const field = useField();
   const [uncontrolled, setUncontrolled] = useState(defaultChecked);
   const on = checked ?? uncontrolled;
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -47,7 +63,11 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       type="button"
       role="switch"
       aria-checked={on}
+      aria-describedby={[field?.describedBy, describedBy].filter(Boolean).join(' ') || undefined}
+      aria-invalid={field?.invalid || undefined}
       {...rest}
+      id={fieldControlId(field, id)}
+      disabled={disabled ?? (field?.disabled || undefined)}
       onClick={handleClick}
       className={cx(styles.switch, className)}
     >
@@ -70,7 +90,10 @@ export interface PreferenceRowProps extends Omit<SwitchProps, 'title' | 'childre
  * the right, gap 18. The title is the switch's `<label>`, so clicking it toggles the switch too.
  */
 export const PreferenceRow = forwardRef<HTMLButtonElement, PreferenceRowProps>(
-  function PreferenceRow({ title, description, className, id, ...switchProps }, ref) {
+  function PreferenceRow(
+    { title, description, className, id, 'aria-describedby': describedBy, ...switchProps },
+    ref,
+  ) {
     const uid = useId();
     const switchId = id ?? `${uid}-switch`;
     const descriptionId = hasSlot(description) ? `${uid}-description` : undefined;
@@ -86,7 +109,15 @@ export const PreferenceRow = forwardRef<HTMLButtonElement, PreferenceRowProps>(
             </span>
           )}
         </div>
-        <Switch ref={ref} id={switchId} aria-describedby={descriptionId} {...switchProps} />
+        {/* The row labels its own switch: ignore an enclosing Field. */}
+        <FieldReset>
+          <Switch
+            ref={ref}
+            id={switchId}
+            aria-describedby={[descriptionId, describedBy].filter(Boolean).join(' ') || undefined}
+            {...switchProps}
+          />
+        </FieldReset>
       </div>
     );
   },

@@ -4,9 +4,10 @@
  * muted placeholder).
  *
  * Derived (not drawn in Figma; LIN-86 spec): focus = accent border + 2px accent halo
- * (--color-accent-ring, an outline, since there are no shadows), shown on any focus because text
- * fields take keyboard input after a click too; disabled = subtle fill, muted text; invalid = ink
- * border (monochrome, the design has no error colour) plus the Field's error line.
+ * (--color-accent-ring, an outline, since there are no shadows); keyboard focus (:focus-visible,
+ * which browsers also match for text fields focused by click) = the solid 2px focus ring;
+ * disabled = subtle fill, muted text; invalid = ink border (monochrome, the design has no error
+ * colour) plus the Field's error line.
  */
 .wrapper {
   position: relative;
@@ -35,6 +36,12 @@
 .control:focus {
   border-color: var(--color-accent);
   outline: var(--space-2) solid var(--color-accent-ring);
+  outline-offset: 0;
+}
+
+/* Keyboard focus: the solid focus ring (as on every other control) replaces the soft halo. */
+.control:focus-visible {
+  outline: var(--focus-ring);
   outline-offset: 0;
 }
 

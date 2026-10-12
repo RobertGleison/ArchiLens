@@ -2,9 +2,16 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Search } from 'lucide-react';
 import { createRef, useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Checkbox } from './Checkbox';
 import { Field, FieldRow } from './Field';
 import { Select, Textarea, TextInput } from './FormControls';
+import { SegmentedControl } from './SegmentedControl';
+import { PreferenceRow, Switch } from './Switch';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('Field', () => {
   it('labels its control and links help text', () => {
@@ -45,6 +52,85 @@ describe('Field', () => {
     );
     expect(screen.getByRole('textbox', { name: 'Name' })).toBeRequired();
     expect(screen.getByRole('textbox', { name: 'Notes' })).toBeEnabled();
+  });
+
+  it("always uses the Field's control id and warns when the control has another", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <Field label="Branch" controlId="branch">
+        <TextInput id="other" />
+      </Field>,
+    );
+    const input = screen.getByRole('textbox', { name: 'Branch' });
+    expect(input).toHaveAttribute('id', 'branch');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"other" is ignored'));
+  });
+
+  it('passes disabled to a Select', () => {
+    render(
+      <Field label="When a cap is reached" disabled>
+        <Select>
+          <option>Pause scans & notify admins</option>
+        </Select>
+      </Field>,
+    );
+    expect(screen.getByRole('combobox', { name: 'When a cap is reached' })).toBeDisabled();
+  });
+
+  it('labels a SegmentedControl group with aria-labelledby (no dangling htmlFor)', async () => {
+    const user = userEvent.setup();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    function Demo() {
+      const [value, setValue] = useState('daily');
+      return (
+        <Field label="Frequency" description="Runs at the time below">
+          <SegmentedControl
+            options={[
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+            ]}
+            value={value}
+            onValueChange={setValue}
+          />
+        </Field>
+      );
+    }
+    render(<Demo />);
+    const group = screen.getByRole('radiogroup', { name: 'Frequency' });
+    expect(group).toHaveAccessibleDescription('Runs at the time below');
+    expect(screen.getByText('Frequency').tagName).toBe('SPAN');
+    await user.click(screen.getByText('Weekly'));
+    expect(screen.getByRole('radio', { name: 'Weekly' })).toBeChecked();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('labels a Switch and a Checkbox through htmlFor and passes disabled and help text', () => {
+    render(
+      <>
+        <Field label="Notify admins" description="By email" disabled>
+          <Switch />
+        </Field>
+        <Field label="Monitored" error="Pick at least one">
+          <Checkbox />
+        </Field>
+      </>,
+    );
+    const toggle = screen.getByRole('switch', { name: 'Notify admins' });
+    expect(toggle).toBeDisabled();
+    expect(toggle).toHaveAccessibleDescription('By email');
+    const box = screen.getByRole('checkbox', { name: 'Monitored' });
+    expect(box).toHaveAttribute('aria-invalid', 'true');
+    expect(box).toHaveAccessibleDescription('Pick at least one');
+  });
+
+  it('lets a PreferenceRow inside a Field keep its own label', () => {
+    render(
+      <Field label="Preferences">
+        <PreferenceRow title="Skip unchanged runs" aria-describedby="extra" />
+      </Field>,
+    );
+    const toggle = screen.getByRole('switch', { name: 'Skip unchanged runs' });
+    expect(toggle.getAttribute('aria-describedby')).toBe('extra');
   });
 
   it('uses a given control id', () => {

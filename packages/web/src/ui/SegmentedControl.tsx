@@ -5,8 +5,10 @@ import {
   type ReactElement,
   type ReactNode,
   type Ref,
+  useId,
 } from 'react';
 import { cx } from './cx';
+import { fieldControlId, useField, useFieldGroupLabel } from './Field';
 import styles from './SegmentedControl.module.css';
 import a11y from './visuallyHidden.module.css';
 
@@ -16,18 +18,23 @@ export interface SegmentedOption<V extends string = string> {
   disabled?: boolean;
 }
 
-/** The group must be named: by `aria-label` or by pointing `aria-labelledby` at a visible label. */
+/**
+ * The group must be named: by `aria-label`, by pointing `aria-labelledby` at a visible label, or
+ * (neither prop) by an enclosing `Field`, whose label then names it. Unnamed outside a Field warns
+ * in development.
+ */
 type GroupNameProps =
   | { 'aria-label': string; 'aria-labelledby'?: never }
-  | { 'aria-label'?: never; 'aria-labelledby': string };
+  | { 'aria-label'?: never; 'aria-labelledby': string }
+  | { 'aria-label'?: never; 'aria-labelledby'?: never };
 
 export type SegmentedControlProps<V extends string = string> = Omit<
   ComponentPropsWithoutRef<'div'>,
   'onChange' | 'defaultValue' | 'aria-label' | 'aria-labelledby'
 > &
   GroupNameProps & {
-    /** Shared `name` of the native radios. */
-    name: string;
+    /** Shared `name` of the native radios; generated when omitted. */
+    name?: string;
     options: readonly SegmentedOption<V>[];
     /** Selected value (controlled); `null` selects nothing. */
     value: V | null;
@@ -41,6 +48,9 @@ export type SegmentedControlProps<V extends string = string> = Omit<
  * unselected: white, border-grey border, ink label. `role="radiogroup"` around visually hidden
  * native radios, so Tab enters the group at the selected option and the arrow keys move the
  * selection, as the browser does for radios.
+ *
+ * Inside a `Field` the Field's label names the group (`aria-labelledby`) and its help/error text
+ * describes it; the Field's `disabled` applies unless `disabled` is set here.
  */
 function SegmentedControlInner<V extends string>(
   {
@@ -48,18 +58,34 @@ function SegmentedControlInner<V extends string>(
     options,
     value,
     onValueChange,
-    disabled = false,
+    disabled: disabledProp,
     className,
+    id,
+    'aria-describedby': describedBy,
     ...rest
   }: SegmentedControlProps<V>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  const uid = useId();
+  const field = useField();
+  useFieldGroupLabel(field);
+  const groupName = name ?? `${uid}-segmented`;
+  const disabled = disabledProp ?? field?.disabled ?? false;
+  const named = rest['aria-label'] !== undefined || rest['aria-labelledby'] !== undefined;
+  if (import.meta.env.DEV && !named && !field) {
+    console.warn('SegmentedControl needs aria-label, aria-labelledby or an enclosing Field.');
+  }
   return (
     <div
       ref={ref}
       role="radiogroup"
       aria-disabled={disabled || undefined}
+      aria-labelledby={named ? undefined : field?.labelId}
+      aria-describedby={[field?.describedBy, describedBy].filter(Boolean).join(' ') || undefined}
+      aria-required={field?.required || undefined}
+      aria-invalid={field?.invalid || undefined}
       {...rest}
+      id={fieldControlId(field, id)}
       className={cx(styles.group, className)}
     >
       {options.map((option) => {
@@ -74,7 +100,7 @@ function SegmentedControlInner<V extends string>(
           >
             <input
               type="radio"
-              name={name}
+              name={groupName}
               value={option.value}
               checked={checked}
               disabled={isDisabled}

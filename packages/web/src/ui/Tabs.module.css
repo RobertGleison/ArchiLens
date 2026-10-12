@@ -49,3 +49,26 @@
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
+
+/*
+ * Label + hidden semibold copy stacked in one grid cell: the cell is as wide as the bold text, so
+ * selecting a tab does not move the others.
+ */
+.labelStack {
+  display: inline-grid;
+}
+
+.label,
+.labelReserve {
+  grid-area: 1 / 1;
+}
+
+.labelReserve {
+  font-weight: var(--font-weight-semibold);
+  visibility: hidden;
+}
+
+/* Hidden panels stay mounted: keep them hidden even if a consumer class sets `display`. */
+.panel[hidden] {
+  display: none;
+}

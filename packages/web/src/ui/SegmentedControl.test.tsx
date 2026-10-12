@@ -41,4 +41,23 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('radio', { name: 'Monthly' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Monthly' })).toHaveFocus();
   });
+
+  it('disables the whole group and generates a name when omitted', () => {
+    render(
+      <SegmentedControl
+        aria-label="Locked"
+        options={OPTIONS}
+        value="weekly"
+        onValueChange={() => {}}
+        disabled
+      />,
+    );
+    const group = screen.getByRole('radiogroup', { name: 'Locked' });
+    expect(group).toHaveAttribute('aria-disabled', 'true');
+    const radios = screen.getAllByRole('radio');
+    for (const radio of radios) expect(radio).toBeDisabled();
+    const name = radios[0]?.getAttribute('name');
+    expect(name).toBeTruthy();
+    for (const radio of radios) expect(radio).toHaveAttribute('name', name);
+  });
 });

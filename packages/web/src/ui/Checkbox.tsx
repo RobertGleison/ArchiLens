@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { cx } from './cx';
+import { useFieldControl } from './Field';
 import { ICON_SIZE } from './icon';
 import { hasSlot } from './slot';
 import styles from './Checkbox.module.css';
@@ -35,10 +36,9 @@ export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, '
  * `<span>`); the ref and every other prop (checked, onChange, disabled, aria-*, id, name…) go on
  * the `<input>`.
  */
-export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
-  { indeterminate = false, label, className, onChange, ...rest },
-  ref,
-) {
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(props, ref) {
+  // Inside a Field: the Field's id (its label names the box), help/error text, disabled.
+  const { indeterminate = false, label, className, onChange, ...rest } = useFieldControl(props);
   const inputRef = useRef<HTMLInputElement>(null);
   useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
   // The DOM flag is not an attribute React manages, and a click clears it. Sync it on every
