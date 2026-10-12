@@ -132,8 +132,8 @@ describe('app shell routes', () => {
 
     expect(
       // The lazy chunk imports every ui/ component; under a loaded parallel run that can take
-      // longer than findBy's 1s default.
-      await screen.findByRole('heading', { level: 1, name: 'Components' }, { timeout: 5000 }),
+      // longer than findBy's 1s default. Stays below the test's 5s timeout.
+      await screen.findByRole('heading', { level: 1, name: 'Components' }, { timeout: 4000 }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('navigation', { name: 'Workspace navigation' }),

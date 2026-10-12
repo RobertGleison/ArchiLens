@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { elbowRoute } from './diagramLayout';
 import { Edge, edgeGeometry } from './Edge';
 import styles from './Edge.module.css';
 
@@ -79,5 +80,75 @@ describe('Edge', () => {
     expect(edge).toHaveClass(styles.neutral!);
     expect(edge.querySelector('polygon')).not.toBeNull();
     expect(edge.querySelector(`.${styles.label}`)).toBeNull();
+  });
+});
+
+describe('Edge geometry edge cases and labels', () => {
+  it('draws an elbowRoute with its bend and the arrow on the last segment', () => {
+    const points = elbowRoute({ x: 166, y: 87 }, { x: 351, y: 186 }, 'horizontal');
+    const { path, arrowhead } = edgeGeometry(points, true);
+    expect(path).toBe('M166 87 L351 87 L351 180');
+    expect(arrowhead).toBe('351,186 347,180 355,180');
+  });
+
+  it('skips the arrowhead (with a dev warning) on a zero-length last segment', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { path, arrowhead } = edgeGeometry(
+      [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10, y: 0 },
+      ],
+      true,
+    );
+    expect(arrowhead).toBeNull();
+    expect(path).toBe('M0 0 L10 0 L10 0');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('zero length'));
+    warn.mockRestore();
+  });
+
+  it('puts the default label right of the midpoint of a vertical first segment', () => {
+    const { container } = render(
+      <Edge
+        points={[
+          { x: 100, y: 20 },
+          { x: 100, y: 60 },
+        ]}
+        label="AMQP"
+      />,
+    );
+    const label = container.querySelector(`.${styles.label}`);
+    expect(label).toHaveClass(styles.labelBeside!);
+    expect(label).toHaveStyle({ left: '106px', top: '40px' });
+  });
+
+  it('uses labelPosition as the top-left, without the default offset', () => {
+    const { container } = render(
+      <Edge
+        points={[
+          { x: 0, y: 20 },
+          { x: 50, y: 20 },
+        ]}
+        label="gRPC"
+        labelPosition={{ x: 12, y: 3 }}
+      />,
+    );
+    const label = container.querySelector(`.${styles.label}`);
+    expect(label).toHaveStyle({ left: '12px', top: '3px' });
+    expect(label).not.toHaveClass(styles.labelAbove!);
+    expect(label).not.toHaveClass(styles.labelBeside!);
+  });
+
+  it('can be dashed', () => {
+    const { container } = render(
+      <Edge
+        points={[
+          { x: 0, y: 0 },
+          { x: 0, y: 30 },
+        ]}
+        dashed
+      />,
+    );
+    expect(container.firstElementChild).toHaveClass(styles.dashed!);
   });
 });

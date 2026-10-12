@@ -5,7 +5,7 @@ import { EntityNode } from './EntityNode';
 import styles from './EntityNode.module.css';
 
 describe('EntityNode', () => {
-  it('is a focusable button named by the entity, described by its subtitle', async () => {
+  it('with onClick: a focusable button named by the entity, described by its subtitle', async () => {
     const onClick = vi.fn();
     render(
       <EntityNode
@@ -20,7 +20,13 @@ describe('EntityNode', () => {
     const node = screen.getByRole('button', { name: 'checkout-api' });
     expect(node).toHaveAccessibleDescription('TypeScript · NestJS');
     expect(node).toHaveAttribute('type', 'button');
-    expect(node).toHaveClass(styles.node!, styles.regular!, styles.focus!, 'x');
+    expect(node).toHaveClass(
+      styles.node!,
+      styles.regular!,
+      styles.focus!,
+      styles.interactive!,
+      'x',
+    );
     expect(node).toHaveAttribute('data-variant', 'focus');
     expect(node.querySelector('svg')).toHaveAttribute('width', '13');
     expect(node.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
@@ -31,6 +37,20 @@ describe('EntityNode', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('without onClick: a non-interactive group with the same name and description', async () => {
+    render(<EntityNode name="Stripe" kind="integration" subtitle="Payments integration" />);
+    expect(screen.queryByRole('button')).toBeNull();
+    const node = screen.getByRole('group', { name: 'Stripe' });
+    expect(node.tagName).toBe('DIV');
+    expect(node).toHaveAccessibleDescription('Payments integration');
+    expect(node).toHaveClass(styles.node!, styles.regular!);
+    expect(node).not.toHaveClass(styles.interactive!);
+    expect(node).not.toHaveAttribute('tabindex');
+
+    await userEvent.tab();
+    expect(node).not.toHaveFocus();
+  });
+
   it('marks added and removed entities in the name, not only visually', () => {
     render(
       <>
@@ -38,23 +58,23 @@ describe('EntityNode', () => {
         <EntityNode name="payments" kind="service" variant="removed" />
       </>,
     );
-    const added = screen.getByRole('button', { name: 'Redis cache (added)' });
+    const added = screen.getByRole('group', { name: 'Redis cache (added)' });
     expect(added).toHaveTextContent('+ Redis cache');
     expect(added).toHaveClass(styles.added!);
-    const removed = screen.getByRole('button', { name: 'payments (removed)' });
+    const removed = screen.getByRole('group', { name: 'payments (removed)' });
     expect(removed).toHaveClass(styles.removed!);
     expect(removed.querySelector(`.${styles.nameText}`)).toHaveTextContent('payments');
   });
 
   it('positions absolutely when given a stage point', () => {
-    render(<EntityNode name="Stripe" kind="integration" at={{ x: 536, y: 41 }} />);
-    const node = screen.getByRole('button', { name: 'Stripe' });
+    render(<EntityNode name="Stripe" kind="integration" at={{ x: 536, y: 54 }} />);
+    const node = screen.getByRole('group', { name: 'Stripe' });
     expect(node).toHaveClass(styles.placed!);
-    expect(node).toHaveStyle({ left: '536px', top: '41px' });
+    expect(node).toHaveStyle({ left: '536px', top: '54px' });
   });
 
   it('has a compact variant with a single label and no icon', () => {
-    render(<EntityNode compact name="SQS" variant="added" />);
+    render(<EntityNode compact name="SQS" variant="added" onClick={() => {}} />);
     const node = screen.getByRole('button', { name: 'SQS (added)' });
     expect(node).toHaveClass(styles.compact!);
     expect(node.querySelector('svg')).toBeNull();
@@ -63,8 +83,27 @@ describe('EntityNode', () => {
 
   it('uses an explicit aria-label instead of the name span', () => {
     render(<EntityNode name="checkout-api" kind="service" aria-label="checkout-api, scanned" />);
-    expect(screen.getByRole('button', { name: 'checkout-api, scanned' })).not.toHaveAttribute(
+    expect(screen.getByRole('group', { name: 'checkout-api, scanned' })).not.toHaveAttribute(
       'aria-labelledby',
     );
+  });
+
+  it('uses an explicit aria-labelledby and keeps extra descriptions', () => {
+    render(
+      <>
+        <span id="ext-name">Checkout service</span>
+        <span id="ext-desc">Scanned repository</span>
+        <EntityNode
+          name="checkout-api"
+          kind="service"
+          subtitle="TypeScript · NestJS"
+          aria-labelledby="ext-name"
+          aria-describedby="ext-desc"
+          onClick={() => {}}
+        />
+      </>,
+    );
+    const node = screen.getByRole('button', { name: 'Checkout service' });
+    expect(node).toHaveAccessibleDescription('TypeScript · NestJS Scanned repository');
   });
 });

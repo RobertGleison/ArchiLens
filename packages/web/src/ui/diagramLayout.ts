@@ -1,9 +1,14 @@
 /**
- * Geometry helpers for architecture diagrams: a fixed row/column grid for entity nodes and
- * orthogonal edge routes between them. Coordinates are CSS pixels in the `DiagramCanvas` stage
- * (origin top-left). Screens own the data mapping and choose the grid; these helpers only do the
- * arithmetic so nodes and edges line up.
+ * Geometry helpers for architecture diagrams: a fixed row/column grid for entity nodes,
+ * orthogonal edge routes between them, and `layoutDiagram`, which turns nodes + relationships
+ * into props for `EntityNode`, `Edge` and `DiagramCanvas`. Coordinates are CSS pixels in the
+ * `DiagramCanvas` stage (origin top-left). Screens own the data mapping and choose the grid.
  */
+import type { ReactNode } from 'react';
+import type { DiagramRelationship } from './Diagram';
+import { warnOnce } from './devWarning';
+import type { EdgeProps } from './Edge';
+import type { EntityKind, EntityNodeVariant, RegularEntityNodeProps } from './EntityNode';
 
 export interface Point {
   x: number;
@@ -59,7 +64,7 @@ export interface DiagramGrid {
   gapRightOf(column: number): number;
 }
 
-/** A fixed grid of equally sized nodes. */
+/** A fixed grid of equally sized nodes. Out-of-range cells log a dev warning. */
 export function diagramGrid(options: DiagramGridOptions): DiagramGrid {
   const {
     columns,
@@ -70,10 +75,18 @@ export function diagramGrid(options: DiagramGridOptions): DiagramGrid {
     rowGap = DIAGRAM_GRID_DEFAULTS.rowGap,
     origin = DIAGRAM_GRID_DEFAULTS.origin,
   } = options;
-  const cell = (column: number, row: number): Point => ({
-    x: origin.x + column * (nodeWidth + columnGap),
-    y: origin.y + row * (nodeHeight + rowGap),
-  });
+  const cell = (column: number, row: number): Point => {
+    if (column < 0 || column >= columns || row < 0 || row >= rows) {
+      warnOnce(
+        `diagramGrid: cell (${column}, ${row}) is outside the ${columns}×${rows} grid; the stage ` +
+          'size will not fit it.',
+      );
+    }
+    return {
+      x: origin.x + column * (nodeWidth + columnGap),
+      y: origin.y + row * (nodeHeight + rowGap),
+    };
+  };
   return {
     width: origin.x + columns * nodeWidth + Math.max(0, columns - 1) * columnGap,
     height: origin.y + rows * nodeHeight + Math.max(0, rows - 1) * rowGap,
@@ -145,5 +158,205 @@ export function fanOutRoute(source: Point, targets: Point[], junctionY: number):
             { x: maxX, y: junctionY },
           ],
     branches: targets.map((t) => [{ x: t.x, y: junctionY }, t]),
+  };
+}
+
+export type RelationshipChange = 'added' | 'removed' | 'unchanged';
+
+export interface DiagramNodeSpec {
+  /** Unique within the diagram; edges refer to it. */
+  id: string;
+  name: string;
+  kind: EntityKind;
+  column: number;
+  row: number;
+  variant?: EntityNodeVariant;
+  subtitle?: ReactNode;
+}
+
+export interface DiagramEdgeSpec {
+  /** Defaults to `${from}->${to}`. */
+  id?: string;
+  /** Node ids. */
+  from: string;
+  to: string;
+  /** Protocol label on the edge and in the text list, e.g. "HTTPS". */
+  protocol?: string;
+  /** `added`: teal. `removed`: grey dashed. `unchanged` (default): grey. */
+  change?: RelationshipChange;
+  /**
+   * `auto` (default): straight within a row or column; otherwise down (or up) through the gap
+   * next to the source row, sharing one trunk and rail with every other `auto` edge from the same
+   * source in that direction (fan-out). `straight`: always a straight line between facing sides.
+   * `elbow`: from the side facing the target, horizontal first, into its top or bottom.
+   */
+  route?: 'auto' | 'straight' | 'elbow';
+}
+
+export interface LayoutDiagramOptions
+  extends
+    Omit<DiagramGridOptions, 'columns' | 'rows'>,
+    Partial<Pick<DiagramGridOptions, 'columns' | 'rows'>> {
+  nodes: readonly DiagramNodeSpec[];
+  edges: readonly DiagramEdgeSpec[];
+}
+
+export interface DiagramLayout {
+  /** Stage size for `DiagramCanvas`. */
+  width: number;
+  height: number;
+  grid: DiagramGrid;
+  /** In `nodes` order (keep it the reading order): spread `props` into `EntityNode`. */
+  nodes: { id: string; props: RegularEntityNodeProps }[];
+  /** Spread `props` into `Edge`; render before the nodes. */
+  edges: { id: string; props: EdgeProps }[];
+  /** For `DiagramCanvas`'s `relationships` (one per edge spec, by entity name). */
+  relationships: DiagramRelationship[];
+}
+
+function edgeLook(change: RelationshipChange | undefined): Pick<EdgeProps, 'tone' | 'dashed'> {
+  return { tone: change === 'added' ? 'accent' : 'neutral', dashed: change === 'removed' };
+}
+
+/** A shared trunk/rail is teal only when every edge in it is added (dashed when all removed). */
+function sharedLook(
+  changes: (RelationshipChange | undefined)[],
+): Pick<EdgeProps, 'tone' | 'dashed'> {
+  return {
+    tone: changes.every((c) => c === 'added') ? 'accent' : 'neutral',
+    dashed: changes.every((c) => c === 'removed'),
+  };
+}
+
+/**
+ * Lays out a diagram on a fixed grid: node positions, edge routes (picked from the cells' relative
+ * positions) and the text list of relationships, all from one source so they cannot drift apart.
+ * Throws on unknown node ids and on edges from a node to itself.
+ */
+export function layoutDiagram(options: LayoutDiagramOptions): DiagramLayout {
+  const { nodes, edges, ...gridOptions } = options;
+  const columns = gridOptions.columns ?? Math.max(0, ...nodes.map((n) => n.column)) + 1;
+  const rows = gridOptions.rows ?? Math.max(0, ...nodes.map((n) => n.row)) + 1;
+  const grid = diagramGrid({ ...gridOptions, columns, rows });
+
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const resolve = (id: string, edge: DiagramEdgeSpec) => {
+    const node = byId.get(id);
+    if (!node) throw new Error(`layoutDiagram: edge ${edge.from} -> ${edge.to}: no node "${id}"`);
+    return node;
+  };
+  const resolved = edges.map((spec) => {
+    const from = resolve(spec.from, spec);
+    const to = resolve(spec.to, spec);
+    if (from === to) throw new Error(`layoutDiagram: edge from "${from.id}" to itself`);
+    const dc = to.column - from.column;
+    const dr = to.row - from.row;
+    const route = spec.route ?? 'auto';
+    const straight = route === 'straight' || dc === 0 || dr === 0;
+    return { spec, from, to, dc, dr, route, straight };
+  });
+
+  // Fan-out groups: `auto` edges leaving the same source in the same vertical direction.
+  const groupKey = (e: (typeof resolved)[number]) =>
+    e.route === 'auto' && e.dr !== 0 ? `${e.from.id}:${e.dr > 0 ? 'down' : 'up'}` : null;
+  const groups = new Map<string, (typeof resolved)[number][]>();
+  for (const e of resolved) {
+    const key = groupKey(e);
+    if (key) groups.set(key, [...(groups.get(key) ?? []), e]);
+  }
+
+  const out: DiagramLayout['edges'] = [];
+  const emittedGroups = new Set<string>();
+  for (const e of resolved) {
+    const { spec, from, to, dc, dr } = e;
+    const id = spec.id ?? `${spec.from}->${spec.to}`;
+    const look = edgeLook(spec.change);
+    const key = groupKey(e);
+    const group = key ? groups.get(key)! : [];
+    const fanOut = key !== null && (group.length > 1 || !e.straight);
+
+    if (fanOut) {
+      const down = dr > 0;
+      const source = grid.anchor(from.column, from.row, down ? 'bottom' : 'top');
+      const junctionY = down ? grid.gapBelow(from.row) : grid.gapBelow(from.row - 1);
+      const route = fanOutRoute(
+        source,
+        group.map((g) => grid.anchor(g.to.column, g.to.row, down ? 'top' : 'bottom')),
+        junctionY,
+      );
+      if (group.length === 1) {
+        // A single bent edge: one path, so its label and colour cover the whole route.
+        const branch = route.branches[0]!;
+        const points = [...route.trunk, ...branch];
+        out.push({ id, props: { points, label: spec.protocol, ...look } });
+        continue;
+      }
+      if (!emittedGroups.has(key)) {
+        emittedGroups.add(key);
+        const shared = sharedLook(group.map((g) => g.spec.change));
+        out.push({ id: `${key}:trunk`, props: { points: route.trunk, arrow: false, ...shared } });
+        if (route.rail) {
+          out.push({ id: `${key}:rail`, props: { points: route.rail, arrow: false, ...shared } });
+        }
+      }
+      out.push({
+        id,
+        props: { points: route.branches[group.indexOf(e)]!, label: spec.protocol, ...look },
+      });
+      continue;
+    }
+
+    let points: Point[];
+    if (e.straight) {
+      points =
+        dr === 0
+          ? [
+              grid.anchor(from.column, from.row, dc > 0 ? 'right' : 'left'),
+              grid.anchor(to.column, to.row, dc > 0 ? 'left' : 'right'),
+            ]
+          : dc === 0
+            ? [
+                grid.anchor(from.column, from.row, dr > 0 ? 'bottom' : 'top'),
+                grid.anchor(to.column, to.row, dr > 0 ? 'top' : 'bottom'),
+              ]
+            : // `straight` between cells that share no axis: centre to centre is not orthogonal,
+              // so fall back to the elbow.
+              elbowRoute(
+                grid.anchor(from.column, from.row, dc > 0 ? 'right' : 'left'),
+                grid.anchor(to.column, to.row, dr > 0 ? 'top' : 'bottom'),
+                'horizontal',
+              );
+    } else {
+      points = elbowRoute(
+        grid.anchor(from.column, from.row, dc > 0 ? 'right' : 'left'),
+        grid.anchor(to.column, to.row, dr > 0 ? 'top' : 'bottom'),
+        'horizontal',
+      );
+    }
+    out.push({ id, props: { points, label: spec.protocol, ...look } });
+  }
+
+  return {
+    width: grid.width,
+    height: grid.height,
+    grid,
+    nodes: nodes.map((n) => ({
+      id: n.id,
+      props: {
+        name: n.name,
+        kind: n.kind,
+        subtitle: n.subtitle,
+        variant: n.variant,
+        at: grid.cell(n.column, n.row),
+      },
+    })),
+    edges: out,
+    relationships: resolved.map(({ spec, from, to }) => ({
+      id: spec.id ?? `${spec.from}->${spec.to}`,
+      from: from.name,
+      to: to.name,
+      protocol: spec.protocol,
+      change: spec.change === 'unchanged' ? undefined : spec.change,
+    })),
   };
 }

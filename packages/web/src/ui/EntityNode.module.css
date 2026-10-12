@@ -21,10 +21,14 @@
   font-family: var(--font-sans);
   text-align: start;
   overflow: hidden;
+}
+
+/* Only the button form (with onClick) looks clickable. */
+.interactive {
   cursor: pointer;
 }
 
-.node:hover {
+.interactive:hover {
   background: var(--color-surface-subtle);
 }
 

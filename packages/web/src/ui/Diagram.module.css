@@ -29,6 +29,22 @@
   color: var(--color-ink-muted);
 }
 
+/*
+ * Horizontal scroller for wide stages. It spans the canvas's side insets (negative margin, equal
+ * padding) and 4px above and below, so node focus rings (2px + 2px offset) are not clipped; its
+ * own focus ring is drawn inside, because the canvas clips anything outside.
+ */
+.scroller {
+  align-self: stretch;
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-24));
+  padding: var(--space-4) var(--space-24);
+  overflow: auto;
+}
+
+.scroller:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+}
+
 .stage {
   position: relative;
   flex-shrink: 0;

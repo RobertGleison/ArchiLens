@@ -1,6 +1,7 @@
 /*
  * Diagram relationship edge, Figma 3:13322–3:13333 (map) and 3:13947 (teal added relationship):
- * 1.5px line, 6×8 arrowhead in the same colour, IBM Plex Mono 9px muted protocol label.
+ * 1.5px line, 6×8 arrowhead in the same colour, IBM Plex Mono 9px muted protocol label. Dashed
+ * (removed relationships) is not drawn in Figma; it mirrors the removed entity's dashed border.
  * The wrapper covers the stage; the SVG has no viewBox, so its user units are stage pixels.
  */
 .edge {
@@ -34,6 +35,10 @@
   stroke-linejoin: miter;
 }
 
+.dashed .line {
+  stroke-dasharray: var(--space-4) var(--space-3);
+}
+
 .arrow {
   fill: currentColor;
 }
@@ -47,7 +52,11 @@
   white-space: nowrap;
 }
 
-/* Default placement: the given point is the label's bottom-left. */
+/* Default placements: the point is the label's bottom-left (above) or middle-left (beside). */
 .labelAbove {
   transform: translateY(-100%);
+}
+
+.labelBeside {
+  transform: translateY(-50%);
 }

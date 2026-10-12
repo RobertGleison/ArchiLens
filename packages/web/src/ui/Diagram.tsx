@@ -7,6 +7,8 @@ import a11y from './visuallyHidden.module.css';
 
 /** A relationship described in text (the drawn edges are decorative). */
 export interface DiagramRelationship {
+  /** Stable list key; defaults to the description text. `layoutDiagram` sets the edge id. */
+  id?: string;
   from: string;
   to: string;
   /** e.g. "HTTPS". */
@@ -23,7 +25,12 @@ export interface DiagramCanvasProps extends Omit<ComponentPropsWithoutRef<'figur
   /** Stage size in px (e.g. `diagramGrid().width` / `.height`). Nodes and edges use its pixels. */
   width: number;
   height: number;
-  /** Boundary label, top-left; shown uppercase in IBM Plex Mono 10px, e.g. "Checkout service / production". */
+  /**
+   * Boundary label, top-left; shown uppercase in IBM Plex Mono 10px, e.g. "Checkout service /
+   * production". It is drawn over the top band of the stage, not above it: keep the first row of
+   * nodes below it with the grid's `origin.y` (the default 54 matches Figma). Also names the
+   * figure.
+   */
   boundary?: ReactNode;
   /** Hosting line under the stage (IBM Plex Mono 10px muted), e.g. "DEPLOYMENT · AWS ECS Fargate". */
   hosting?: ReactNode;
@@ -36,6 +43,11 @@ export interface DiagramCanvasProps extends Omit<ComponentPropsWithoutRef<'figur
   relationships?: readonly DiagramRelationship[];
   /** Label of the hidden relationship list. Default "Relationships". */
   relationshipsLabel?: string;
+  /**
+   * Accessible name of the stage's scroll container (it is focusable so keyboard users can scroll
+   * a diagram wider than the canvas). Default "Diagram".
+   */
+  scrollLabel?: string;
   /** Stage contents: `Edge`s first, then positioned `EntityNode`s (in reading order). */
   children: ReactNode;
 }
@@ -54,6 +66,7 @@ export const DiagramCanvas = forwardRef<HTMLElement, DiagramCanvasProps>(functio
     note,
     relationships,
     relationshipsLabel = 'Relationships',
+    scrollLabel = 'Diagram',
     className,
     children,
     ...rest
@@ -76,8 +89,11 @@ export const DiagramCanvas = forwardRef<HTMLElement, DiagramCanvasProps>(functio
           {boundary}
         </figcaption>
       )}
-      <div className={styles.stage} style={{ width, height }}>
-        {children}
+      {/* Scrolls when the stage is wider than the canvas; the canvas keeps the rounded clip. */}
+      <div className={styles.scroller} tabIndex={0} role="group" aria-label={scrollLabel}>
+        <div className={styles.stage} style={{ width, height }}>
+          {children}
+        </div>
       </div>
       {hasFooter && (
         <div className={styles.footer}>
@@ -87,9 +103,10 @@ export const DiagramCanvas = forwardRef<HTMLElement, DiagramCanvasProps>(functio
       )}
       {relationships && relationships.length > 0 && (
         <ul className={a11y.visuallyHidden} aria-label={relationshipsLabel}>
-          {relationships.map((r, i) => (
-            <li key={i}>{describeRelationship(r)}</li>
-          ))}
+          {relationships.map((r) => {
+            const text = describeRelationship(r);
+            return <li key={r.id ?? text}>{text}</li>;
+          })}
         </ul>
       )}
     </figure>
@@ -97,6 +114,8 @@ export const DiagramCanvas = forwardRef<HTMLElement, DiagramCanvasProps>(functio
 });
 
 export interface DiagramLegendItem {
+  /** Stable list key; defaults to `label` when it is a string. */
+  id?: string;
   label: ReactNode;
   /** Default `neutral`. Counts that matter (evidence links, additions) use `accent`. */
   tone?: StatusPillTone;
@@ -120,7 +139,10 @@ export const DiagramLegend = forwardRef<HTMLDivElement, DiagramLegendProps>(func
     <div ref={ref} {...rest} className={cx(styles.legend, className)}>
       <ul className={styles.items} aria-label={listLabel}>
         {items.map((item, i) => (
-          <li key={i} className={styles.item}>
+          <li
+            key={item.id ?? (typeof item.label === 'string' ? item.label : i)}
+            className={styles.item}
+          >
             <StatusPill tone={item.tone}>{item.label}</StatusPill>
           </li>
         ))}

@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { DiagramCanvas, DiagramLegend, describeRelationship } from './Diagram';
 import styles from './Diagram.module.css';
@@ -33,8 +34,52 @@ describe('DiagramCanvas', () => {
     });
     expect(screen.getByText('DEPLOYMENT · AWS ECS Fargate')).toHaveClass(styles.hosting!);
     expect(screen.getByText('Teal: added relationship or component')).toHaveClass(styles.note!);
-    expect(within(figure).getByRole('button', { name: 'API gateway' })).toBeInTheDocument();
+    expect(within(figure).getByRole('group', { name: 'API gateway' })).toBeInTheDocument();
     expect(screen.queryByRole('list')).toBeNull();
+  });
+
+  it('wraps the stage in a focusable, labelled scroller', async () => {
+    const { container } = render(
+      <DiagramCanvas width={1200} height={100} scrollLabel="Architecture map">
+        {null}
+      </DiagramCanvas>,
+    );
+    const scroller = screen.getByRole('group', { name: 'Architecture map' });
+    expect(scroller).toHaveClass(styles.scroller!);
+    expect(scroller).toHaveAttribute('tabindex', '0');
+    expect(scroller).toContainElement(container.querySelector(`.${styles.stage}`) as HTMLElement);
+    await userEvent.tab();
+    expect(scroller).toHaveFocus();
+  });
+
+  it('is unnamed without a boundary, and lets aria-label / aria-labelledby win', () => {
+    const { container, rerender } = render(
+      <DiagramCanvas width={10} height={10}>
+        {null}
+      </DiagramCanvas>,
+    );
+    const figure = container.querySelector('figure')!;
+    expect(figure).not.toHaveAttribute('aria-labelledby');
+    expect(container.querySelector('figcaption')).toBeNull();
+
+    rerender(
+      <DiagramCanvas width={10} height={10} boundary="Boundary" aria-label="Checkout map">
+        {null}
+      </DiagramCanvas>,
+    );
+    expect(screen.getByRole('figure', { name: 'Checkout map' })).not.toHaveAttribute(
+      'aria-labelledby',
+    );
+
+    rerender(
+      <>
+        <h3 id="map-title">Architecture snapshot</h3>
+        <DiagramCanvas width={10} height={10} boundary="Boundary" aria-labelledby="map-title">
+          {null}
+        </DiagramCanvas>
+      </>,
+    );
+    expect(screen.getByRole('figure', { name: 'Architecture snapshot' })).toBeInTheDocument();
   });
 
   it('lists relationships as text', () => {
@@ -43,7 +88,7 @@ describe('DiagramCanvas', () => {
         width={10}
         height={10}
         relationships={[
-          { from: 'API gateway', to: 'checkout-api', protocol: 'HTTPS' },
+          { id: 'a', from: 'API gateway', to: 'checkout-api', protocol: 'HTTPS' },
           { from: 'checkout-api', to: 'Redis cache', change: 'added' },
         ]}
       >

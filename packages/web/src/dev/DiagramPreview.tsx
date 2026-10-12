@@ -1,27 +1,30 @@
 import { ArrowRight, Maximize2 } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '../ui/Button';
-import { DiagramCanvas, DiagramLegend, type DiagramRelationship } from '../ui/Diagram';
-import { diagramGrid, fanOutRoute, type Point } from '../ui/diagramLayout';
+import { DiagramCanvas, DiagramLegend } from '../ui/Diagram';
+import {
+  layoutDiagram,
+  type DiagramEdgeSpec,
+  type DiagramLayout,
+  type DiagramNodeSpec,
+} from '../ui/diagramLayout';
 import { Edge } from '../ui/Edge';
-import { EntityNode, type EntityKind, type EntityNodeVariant } from '../ui/EntityNode';
+import { EntityNode } from '../ui/EntityNode';
 import { ICON_SIZE } from '../ui/icon';
 import styles from './ComponentPreview.module.css';
 
-interface MapEntity {
-  name: string;
-  kind: EntityKind;
-  subtitle: string;
-  column: number;
-  row: number;
-  variant?: EntityNodeVariant;
-}
-
-const grid = diagramGrid({ columns: 3, rows: 2 });
-
-/** Repository detail architecture map (Figma 3:13320), reading order. */
-const ENTITIES: MapEntity[] = [
-  { name: 'API gateway', kind: 'gateway', subtitle: 'REST /v1/checkout', column: 0, row: 0 },
+/** Repository detail architecture map (Figma 3:13320), in reading order. */
+const NODES: DiagramNodeSpec[] = [
   {
+    id: 'gateway',
+    name: 'API gateway',
+    kind: 'gateway',
+    subtitle: 'REST /v1/checkout',
+    column: 0,
+    row: 0,
+  },
+  {
+    id: 'checkout',
     name: 'checkout-api',
     kind: 'service',
     subtitle: 'TypeScript · NestJS',
@@ -29,69 +32,97 @@ const ENTITIES: MapEntity[] = [
     row: 0,
     variant: 'focus',
   },
-  { name: 'Stripe', kind: 'integration', subtitle: 'Payments integration', column: 2, row: 0 },
-  { name: 'PostgreSQL', kind: 'datastore', subtitle: 'Orders · managed RDS', column: 0, row: 1 },
-  { name: 'Redis', kind: 'datastore', subtitle: 'Session & idempotency cache', column: 1, row: 1 },
-  { name: 'Amazon SQS', kind: 'queue', subtitle: 'Payment event queue', column: 2, row: 1 },
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    kind: 'integration',
+    subtitle: 'Payments integration',
+    column: 2,
+    row: 0,
+  },
+  {
+    id: 'postgres',
+    name: 'PostgreSQL',
+    kind: 'datastore',
+    subtitle: 'Orders · managed RDS',
+    column: 0,
+    row: 1,
+  },
+  {
+    id: 'redis',
+    name: 'Redis',
+    kind: 'datastore',
+    subtitle: 'Session & idempotency cache',
+    column: 1,
+    row: 1,
+  },
+  {
+    id: 'sqs',
+    name: 'Amazon SQS',
+    kind: 'queue',
+    subtitle: 'Payment event queue',
+    column: 2,
+    row: 1,
+  },
 ];
 
-const RELATIONSHIPS: DiagramRelationship[] = [
-  { from: 'API gateway', to: 'checkout-api', protocol: 'HTTPS' },
-  { from: 'checkout-api', to: 'Stripe', protocol: 'HTTPS' },
-  { from: 'checkout-api', to: 'PostgreSQL' },
-  { from: 'checkout-api', to: 'Redis' },
-  { from: 'checkout-api', to: 'Amazon SQS' },
+const EDGES: DiagramEdgeSpec[] = [
+  { from: 'gateway', to: 'checkout', protocol: 'HTTPS' },
+  { from: 'checkout', to: 'stripe', protocol: 'HTTPS' },
+  { from: 'checkout', to: 'postgres' },
+  { from: 'checkout', to: 'redis' },
+  { from: 'checkout', to: 'sqs' },
 ];
 
-const storage = fanOutRoute(
-  grid.anchor(1, 0, 'bottom'),
-  [grid.anchor(0, 1, 'top'), grid.anchor(1, 1, 'top'), grid.anchor(2, 1, 'top')],
-  grid.gapBelow(0),
-);
+const MAP = layoutDiagram({ nodes: NODES, edges: EDGES });
 
-const line = (from: Point, to: Point) => [from, to];
+/** Report visual diff (3:13938): the Redis cache and its relationship are new; no focus node. */
+const DIFF = layoutDiagram({
+  nodes: NODES.map((n) =>
+    n.id === 'redis'
+      ? { ...n, name: 'Redis cache', variant: 'added' as const }
+      : { ...n, variant: undefined },
+  ),
+  edges: EDGES.map((e) => (e.to === 'redis' ? { ...e, change: 'added' as const } : e)),
+});
 
-function ArchitectureMap({ diff = false }: { diff?: boolean }) {
-  const entities = diff
-    ? ENTITIES.map((e) =>
-        e.name === 'Redis'
-          ? { ...e, name: 'Redis cache', variant: 'added' as const }
-          : { ...e, variant: undefined },
-      )
-    : ENTITIES;
-  const relationships = diff
-    ? RELATIONSHIPS.map((r) =>
-        r.to === 'Redis' ? { ...r, to: 'Redis cache', change: 'added' as const } : r,
-      )
-    : RELATIONSHIPS;
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+const signed = (n: number, one: string, many: string) => `+${plural(n, one, many)}`;
+
+const DIFF_COUNTS = {
+  addedNodes: DIFF.nodes.filter((n) => n.props.variant === 'added').length,
+  addedEdges: DIFF.relationships.filter((r) => r.change === 'added').length,
+  removed:
+    DIFF.nodes.filter((n) => n.props.variant === 'removed').length +
+    DIFF.relationships.filter((r) => r.change === 'removed').length,
+};
+
+function ArchitectureMap({
+  layout,
+  note,
+  onOpen,
+}: {
+  layout: DiagramLayout;
+  note: string;
+  onOpen?: (name: string) => void;
+}) {
   return (
     <DiagramCanvas
-      width={grid.width}
-      height={grid.height}
+      width={layout.width}
+      height={layout.height}
       boundary="Checkout service / production"
       hosting="DEPLOYMENT · AWS ECS Fargate · 3 tasks · eu-west-1"
-      note={
-        diff
-          ? 'Teal: added relationship or component · Grey: unchanged'
-          : 'Solid: evidence-backed relationship · Source references available for every entity'
-      }
-      relationships={relationships}
+      note={note}
+      relationships={layout.relationships}
     >
-      <Edge points={line(grid.anchor(0, 0, 'right'), grid.anchor(1, 0, 'left'))} label="HTTPS" />
-      <Edge points={line(grid.anchor(1, 0, 'right'), grid.anchor(2, 0, 'left'))} label="HTTPS" />
-      <Edge points={storage.trunk} arrow={false} />
-      {storage.rail && <Edge points={storage.rail} arrow={false} />}
-      {storage.branches.map((points, i) => (
-        <Edge key={i} points={points} tone={diff && i === 1 ? 'accent' : 'neutral'} />
+      {layout.edges.map((e) => (
+        <Edge key={e.id} {...e.props} />
       ))}
-      {entities.map((e) => (
+      {layout.nodes.map((n) => (
         <EntityNode
-          key={e.name}
-          name={e.name}
-          kind={e.kind}
-          subtitle={e.subtitle}
-          variant={e.variant}
-          at={grid.cell(e.column, e.row)}
+          key={n.id}
+          {...n.props}
+          onClick={onOpen ? () => onOpen(n.props.name) : undefined}
         />
       ))}
     </DiagramCanvas>
@@ -103,17 +134,28 @@ function Caption({ children }: { children: string }) {
 }
 
 export function DiagramPreview() {
+  const [opened, setOpened] = useState<string | null>(null);
   return (
     <>
-      <Caption>Repository detail architecture map (3:13320), fixed 3×2 grid</Caption>
+      <Caption>
+        Repository detail architecture map (3:13320), layoutDiagram on a fixed 3×2 grid; nodes are
+        buttons here
+      </Caption>
       <div className={styles.diagramColumn}>
-        <ArchitectureMap />
+        <ArchitectureMap
+          layout={MAP}
+          note="Solid: evidence-backed relationship · Source references available for every entity"
+          onOpen={setOpened}
+        />
       </div>
+      <p className={styles.caption} aria-live="polite">
+        {opened ? `Opened ${opened}` : 'Click or press Enter on a node'}
+      </p>
       <div className={styles.diagramColumn}>
         <DiagramLegend
           items={[
-            { label: '6 entities' },
-            { label: '7 relationships' },
+            { label: plural(MAP.nodes.length, 'entity', 'entities') },
+            { label: plural(MAP.relationships.length, 'relationship', 'relationships') },
             { label: '23 evidence links', tone: 'accent' },
           ]}
           action={
@@ -124,16 +166,25 @@ export function DiagramPreview() {
         />
       </div>
 
-      <Caption>Report visual diff (3:13938): added entity and relationship in teal</Caption>
+      <Caption>
+        Report visual diff (3:13938): added entity and relationship in teal; nodes are not
+        interactive here
+      </Caption>
       <div className={styles.diagramColumn}>
-        <ArchitectureMap diff />
+        <ArchitectureMap
+          layout={DIFF}
+          note="Teal: added relationship or component · Grey: unchanged"
+        />
       </div>
       <div className={styles.diagramColumn}>
         <DiagramLegend
           items={[
-            { label: '+1 component', tone: 'accent' },
-            { label: '+2 relationships', tone: 'accent' },
-            { label: '0 removed' },
+            { label: signed(DIFF_COUNTS.addedNodes, 'component', 'components'), tone: 'accent' },
+            {
+              label: signed(DIFF_COUNTS.addedEdges, 'relationship', 'relationships'),
+              tone: 'accent',
+            },
+            { label: `${DIFF_COUNTS.removed} removed` },
             { label: 'Existing topology preserved' },
           ]}
         />
