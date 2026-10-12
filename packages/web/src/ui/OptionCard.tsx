@@ -10,6 +10,7 @@ import {
 import { cx } from './cx';
 import { hasSlot } from './slot';
 import { ICON_SIZE } from './icon';
+import { joinIds } from './ids';
 import type { IconComponent } from './iconTypes';
 import { StatusPill } from './StatusPill';
 import styles from './OptionCard.module.css';
@@ -183,7 +184,7 @@ export const OptionCard = forwardRef<HTMLInputElement, OptionCardProps>(function
   const descriptionId = showDescription ? `${uid}-description` : undefined;
   const metaId = showMeta ? `${uid}-meta` : undefined;
   const trailingId = showTrailing ? `${uid}-trailing` : undefined;
-  const describedBy = [descriptionId, metaId, trailingId].filter(Boolean).join(' ') || undefined;
+  const describedBy = joinIds(descriptionId, metaId, trailingId);
 
   const input = (
     <input

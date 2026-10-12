@@ -1,6 +1,6 @@
 # ArchiLens
 
-An app to give me the system design architecture of all repositories I want and the latest changes.
+ArchiLens is a local, single-user app that maps the system architecture of your GitHub repositories and tracks architectural changes over time.
 
 ArchiLens runs locally for a single user: a TypeScript (Fastify) server bound to `127.0.0.1` that serves a JSON API under `/api` and the React web UI.
 
@@ -24,6 +24,13 @@ npm run dev
 ```
 
 `npm run dev` builds the shared types, then starts the API server (`tsx watch`, port 4317 by default) and the Vite dev server (http://127.0.0.1:5173) together. Vite proxies `/api` to the API server, so open http://127.0.0.1:5173 to see the placeholder UI calling `GET /api/health`.
+
+### Dev-only preview routes
+
+When running the Vite dev server, two routes render the UI building blocks in isolation (they are not available in production builds):
+
+- `/__tokens`: design tokens (colors, typography, spacing)
+- `/__components`: every UI component variant and state
 
 ## Production build
 
@@ -57,6 +64,20 @@ All configuration is via environment variables; there are no hard-coded paths.
 | `ARCHILENS_DATA_DIR` | `~/.archilens` | Directory for all app data. Created on startup if missing; it is the only place the app writes to. |
 
 The server always binds to `127.0.0.1` (loopback only); the host is intentionally not configurable.
+
+## Data storage
+
+All state lives in a SQLite database, `archilens.db`, inside `ARCHILENS_DATA_DIR`. It runs in WAL mode, so you may also see `-wal` and `-shm` files next to it. Schema migrations are applied automatically at server startup; there is nothing to run by hand.
+
+SQLite access uses the native `better-sqlite3` module, pinned to 11.x because newer majors require Node 20. `npm install` builds or downloads the binary for your platform.
+
+## Dependency notes
+
+The root `package.json` pins `toad-cache` to `3.7.0` via `overrides`. Fastify 4.29 pulls in `toad-cache` 3.7.4, which requires Node 20; the pin keeps installs working on Node 18.
+
+## Known limitations
+
+The project targets Node 18, so it stays on Fastify 4, Vite 5 and Vitest 2. `npm audit` reports open advisories against these versions; fixing them requires upgrading to newer majors, which in turn needs Node 20.
 
 ## API
 

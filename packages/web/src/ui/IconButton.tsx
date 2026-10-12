@@ -1,5 +1,6 @@
 import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 import { cx } from './cx';
+import { warnOnce } from './devWarning';
 import { ICON_SIZE } from './icon';
 import type { IconComponent } from './iconTypes';
 import styles from './IconButton.module.css';
@@ -19,7 +20,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   ref,
 ) {
   if (import.meta.env.DEV && !label.trim()) {
-    console.error('IconButton: `label` must be a non-empty accessible name.');
+    warnOnce('IconButton: `label` must be a non-empty accessible name.');
   }
   return (
     <button

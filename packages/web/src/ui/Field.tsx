@@ -12,6 +12,7 @@ import {
 import { cx } from './cx';
 import { warnOnce } from './devWarning';
 import { ICON_SIZE } from './icon';
+import { joinIds } from './ids';
 import { hasSlot } from './slot';
 import styles from './Field.module.css';
 
@@ -88,8 +89,7 @@ export interface FieldControlProps {
 export function useFieldControl<P extends FieldControlProps>(props: P): P {
   const field = useContext(FieldContext);
   const id = fieldControlId(field, props.id);
-  const describedBy =
-    [field?.describedBy, props['aria-describedby']].filter(Boolean).join(' ') || undefined;
+  const describedBy = joinIds(field?.describedBy, props['aria-describedby']);
   const invalidProp = props['aria-invalid'];
   const invalid =
     invalidProp !== undefined ? invalidProp !== false && invalidProp !== 'false' : !!field?.invalid;
@@ -166,7 +166,7 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
     labelId,
     setGroupLabel,
     // Error first: it is the more urgent of the two.
-    describedBy: [errorId, descriptionId].filter(Boolean).join(' ') || undefined,
+    describedBy: joinIds(errorId, descriptionId),
     invalid: showError,
     required,
     disabled,

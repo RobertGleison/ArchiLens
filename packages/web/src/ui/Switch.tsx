@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { cx } from './cx';
 import { fieldControlId, FieldReset, useField } from './Field';
+import { joinIds } from './ids';
 import { hasSlot } from './slot';
 import styles from './Switch.module.css';
 
@@ -63,7 +64,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(function Switch
       type="button"
       role="switch"
       aria-checked={on}
-      aria-describedby={[field?.describedBy, describedBy].filter(Boolean).join(' ') || undefined}
+      aria-describedby={joinIds(field?.describedBy, describedBy)}
       aria-invalid={field?.invalid || undefined}
       {...rest}
       id={fieldControlId(field, id)}
@@ -114,7 +115,7 @@ export const PreferenceRow = forwardRef<HTMLButtonElement, PreferenceRowProps>(
           <Switch
             ref={ref}
             id={switchId}
-            aria-describedby={[descriptionId, describedBy].filter(Boolean).join(' ') || undefined}
+            aria-describedby={joinIds(descriptionId, describedBy)}
             {...switchProps}
           />
         </FieldReset>

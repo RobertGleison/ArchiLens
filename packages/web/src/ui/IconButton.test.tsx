@@ -33,8 +33,8 @@ describe('IconButton', () => {
     const missing = <IconButton icon={Bell} />;
     expect(missing).toBeTruthy();
 
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(<IconButton icon={Bell} label="  " />);
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('accessible name'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('accessible name'));
   });
 });
