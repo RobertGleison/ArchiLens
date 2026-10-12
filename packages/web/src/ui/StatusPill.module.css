@@ -1,0 +1,30 @@
+/*
+ * Status pill / badge, Figma 3:12752 (accent) and 3:12779 (neutral); also the ⌘K key hint.
+ * No border. There are no red/amber tones: failures use the neutral pill with circle-alert.
+ */
+.pill {
+  composes: caption from '../styles/typography.module.css';
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans); /* also overrides base.css's monospace for <kbd> */
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.accent {
+  background: var(--color-accent-tint);
+  color: var(--color-accent);
+}
+
+.neutral {
+  background: var(--color-surface-subtle);
+  color: var(--color-ink);
+}
+
+.icon {
+  flex-shrink: 0;
+}

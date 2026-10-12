@@ -1,0 +1,27 @@
+/*
+ * Icon-only button, as in the utility bar (Figma 3:12688): an 18px icon with no border or fill.
+ * Hover (accent icon) and disabled are not drawn in Figma; derived from the tokens.
+ */
+.iconButton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled),
+.iconButton:active:not(:disabled) {
+  color: var(--color-accent);
+}
+
+.iconButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}

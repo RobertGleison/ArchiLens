@@ -18,8 +18,9 @@
    */
   --color-ink: #353535;
   --color-ink-muted: rgba(53, 53, 53, 0.7);
-  --color-surface-subtle: rgba(53, 53, 53, 0.02); /* neutral pill, table header, ⌘K hint */
+  --color-surface-subtle: rgba(53, 53, 53, 0.02); /* neutral pill, table header, ⌘K, btn hover */
   --color-accent: #3c6e71;
+  --color-accent-hover: #376568; /* primary hover/active: accent ~8% darker (not in Figma) */
   --color-accent-tint: rgba(60, 110, 113, 0.05);
   --color-border: #d9d9d9;
   --color-surface: #ffffff;
@@ -89,6 +90,9 @@
   /* Focus (keyboard only; applied globally via :focus-visible in base.css) */
   --focus-ring: 2px solid var(--color-accent);
   --focus-ring-offset: 2px;
+
+  /* State (not drawn in Figma; derived for interactive controls) */
+  --opacity-disabled: 0.5;
 
   /* Control and layout sizes */
   --size-control: 38px; /* button, input */

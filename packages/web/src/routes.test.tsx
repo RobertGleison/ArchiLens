@@ -126,4 +126,15 @@ describe('app shell routes', () => {
       screen.queryByRole('navigation', { name: 'Workspace navigation' }),
     ).not.toBeInTheDocument();
   });
+
+  it('serves the component preview outside the shell in dev', async () => {
+    renderAt('/__components');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Components' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('navigation', { name: 'Workspace navigation' }),
+    ).not.toBeInTheDocument();
+  });
 });

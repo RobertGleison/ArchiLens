@@ -12,6 +12,7 @@ const EXPECTED: Record<string, string> = {
   '--color-ink-muted': 'rgba(53, 53, 53, 0.7)',
   '--color-surface-subtle': 'rgba(53, 53, 53, 0.02)',
   '--color-accent': '#3c6e71',
+  '--color-accent-hover': '#376568',
   '--color-accent-tint': 'rgba(60, 110, 113, 0.05)',
   '--color-border': '#d9d9d9',
   '--color-surface': '#ffffff',
@@ -59,6 +60,8 @@ const EXPECTED: Record<string, string> = {
   '--border-default': 'var(--border-width) solid var(--color-border)',
   '--focus-ring': '2px solid var(--color-accent)',
   '--focus-ring-offset': '2px',
+
+  '--opacity-disabled': '0.5',
 
   '--size-control': '38px',
   '--size-control-sm': '30px',

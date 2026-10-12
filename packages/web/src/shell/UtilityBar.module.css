@@ -10,9 +10,8 @@
   background: var(--color-surface);
 }
 
-/* Shared reset for the placeholder buttons (the button system comes later). */
-.search,
-.iconButton {
+/* Bespoke trigger: no Button variant matches this borderless, field-like control. */
+.search {
   margin: 0;
   padding: 0;
   border: 0;
@@ -20,9 +19,6 @@
   color: var(--color-ink);
   font: inherit;
   cursor: pointer;
-}
-
-.search {
   display: flex;
   align-items: center;
   gap: var(--space-10);
@@ -42,17 +38,6 @@
   white-space: nowrap;
 }
 
-.keyHint {
-  composes: caption from '../styles/typography.module.css';
-  flex-shrink: 0;
-  padding: var(--space-4) var(--space-8);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-subtle);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  font-weight: var(--font-weight-medium);
-}
-
 .utilities {
   display: flex;
   flex-shrink: 0;
@@ -65,9 +50,4 @@
   margin: 0;
   color: var(--color-ink-muted);
   white-space: nowrap;
-}
-
-.iconButton {
-  display: inline-flex;
-  border-radius: var(--radius-sm);
 }

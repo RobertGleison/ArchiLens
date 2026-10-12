@@ -12,10 +12,13 @@ import {
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { AppShell } from './shell/AppShell';
 
-// Dev-only token preview, outside the shell. `import.meta.env.DEV` is statically false in
-// production builds, so the route and the dynamic import (and its chunk) are dropped.
+// Dev-only token and component previews, outside the shell. `import.meta.env.DEV` is statically
+// false in production builds, so the routes and the dynamic imports (and their chunks) are dropped.
 const TokenPreview = import.meta.env.DEV
   ? lazy(() => import('./dev/TokenPreview').then((m) => ({ default: m.TokenPreview })))
+  : null;
+const ComponentPreview = import.meta.env.DEV
+  ? lazy(() => import('./dev/ComponentPreview').then((m) => ({ default: m.ComponentPreview })))
   : null;
 
 export function AppRoutes() {
@@ -27,6 +30,16 @@ export function AppRoutes() {
           element={
             <Suspense fallback={null}>
               <TokenPreview />
+            </Suspense>
+          }
+        />
+      )}
+      {ComponentPreview && (
+        <Route
+          path="/__components"
+          element={
+            <Suspense fallback={null}>
+              <ComponentPreview />
             </Suspense>
           }
         />

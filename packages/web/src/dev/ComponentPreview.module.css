@@ -1,0 +1,53 @@
+.page {
+  padding: var(--space-page);
+  max-width: 1080px;
+}
+
+.title {
+  composes: display from '../styles/typography.module.css';
+  margin: 0 0 var(--space-24);
+}
+
+.section {
+  margin-bottom: var(--space-32);
+  padding: var(--space-card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.sectionTitle {
+  composes: title from '../styles/typography.module.css';
+  margin: 0 0 var(--space-16);
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.label {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.body {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+}
