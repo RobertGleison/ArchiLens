@@ -110,8 +110,8 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* Selected rows show the selected identity's name in accent (3:13070); other cells keep ink. */
-.row[data-selected] .selectionContent > .identity > .identityPrimary {
+/* Selected rows show the first cell's identity name in accent (3:13070); other cells keep ink. */
+.row[data-selected] > .cell:first-child .identityPrimary {
   color: var(--color-accent);
 }
 

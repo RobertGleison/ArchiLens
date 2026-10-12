@@ -403,7 +403,7 @@ export function ComponentPreview() {
           }
         >
           <ProgressBar
-            className={styles.tableProgress}
+            wrapperClassName={styles.tableProgress}
             label="Building architecture model · 68%"
             value={68}
           />
@@ -436,7 +436,7 @@ export function ComponentPreview() {
       <Block title="ProgressBar">
         <Caption>sm, scan progress (3:12864), 220px</Caption>
         <ProgressBar
-          className={styles.tableProgress}
+          wrapperClassName={styles.tableProgress}
           label="Building architecture model · 68%"
           value={68}
         />

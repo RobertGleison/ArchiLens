@@ -11,13 +11,12 @@ import {
 import { CardFootnote } from './Card';
 import { Checkbox } from './Checkbox';
 import { cx } from './cx';
+import { hasSlot } from './slot';
 import { TextLink } from './TextLink';
 import styles from './DataTable.module.css';
 import a11y from './visuallyHidden.module.css';
 
-export interface DataTableColumn<Row> {
-  /** Stable column key. Without `render`, the cell shows `row[key]`. */
-  key: string;
+interface DataTableColumnBase {
   /** Header label. Write it in sentence case; it is drawn uppercase (screen readers get it as is). */
   header: ReactNode;
   /**
@@ -25,12 +24,37 @@ export interface DataTableColumn<Row> {
    * the remaining space; when every column has one, the last column takes up any extra space.
    */
   width?: number;
+  /**
+   * Flexible columns only (no `width`): the smallest content width in px used for the table's
+   * minimum width (it scrolls sideways below that). Defaults to 120.
+   */
+  minWidth?: number;
   /** Horizontal alignment of the header and cells. Defaults to `start`. */
   align?: 'start' | 'end';
-  /** Cell content, e.g. an `IdentityCell`, `StatusPill`, `ProgressCell` or row action. */
-  render?: (row: Row, rowIndex: number) => ReactNode;
 }
 
+/**
+ * A table column. Without `render` the cell shows `row[key]` (a string or number), so `key` must be
+ * a key of `Row`; with `render`, `key` is any stable string.
+ */
+export type DataTableColumn<Row> =
+  | (DataTableColumnBase & { key: Extract<keyof Row, string>; render?: undefined })
+  | (DataTableColumnBase & {
+      key: string;
+      /** Cell content, e.g. an `IdentityCell`, `StatusPill`, `ProgressCell` or row action. */
+      render: (row: Row, rowIndex: number) => ReactNode;
+    });
+
+/** Content width a flexible column counts for in the table's minimum width. */
+const DEFAULT_FLEX_MIN_WIDTH = 120;
+
+/**
+ * Controlled row selection. `selectedIds` may hold ids of rows not currently shown (e.g. filtered
+ * out): the bulk count ("N selected") and Clear cover all of them, while the select-all checkbox
+ * and "Select all available" only look at, add or remove the shown, selectable rows (deselecting
+ * via select-all keeps the off-screen ids). Nothing is selectable while a placeholder (loading,
+ * error, empty) replaces the rows.
+ */
 export interface DataTableSelection<Row> {
   /** Selected row ids (controlled). */
   selectedIds: ReadonlySet<string>;
@@ -39,7 +63,7 @@ export interface DataTableSelection<Row> {
   isRowSelectable?: (row: Row) => boolean;
   /** Accessible name of a row's checkbox, e.g. `(repo) => \`Select ${repo.name}\``. */
   getRowLabel: (row: Row) => string;
-  /** Accessible name of the bulk select-all checkbox. Defaults to "Select all available". */
+  /** Accessible name of the bulk select-all checkbox. Defaults to "Select all rows". */
   selectAllLabel?: string;
 }
 
@@ -48,8 +72,9 @@ interface DataTableOwnProps<Row> {
   rows: readonly Row[];
   getRowId: (row: Row) => string;
   /**
-   * Row click (mouse convenience: adds the row hover). Clicks on links, buttons and inputs inside
-   * the row are ignored. Rows still need a focusable link or button for keyboard users.
+   * Row click (mouse convenience: adds the row hover). Clicks on interactive elements inside the
+   * row (links, buttons, inputs, focusable widgets) and clicks that end a text selection are
+   * ignored. Rows still need a focusable link or button for keyboard users.
    */
   onRowClick?: (row: Row) => void;
   /** Row selection: a checkbox before the first column's content and a bulk bar above the table. */
@@ -81,6 +106,10 @@ type DataTableLabelProps =
   | { caption?: never; 'aria-label': string; 'aria-labelledby'?: never }
   | { caption?: never; 'aria-label'?: never; 'aria-labelledby': string };
 
+/**
+ * Props routing: `className`, `ref` and other div props go on the root wrapper (bulk bar, table,
+ * footnote); `caption` / `aria-label` / `aria-labelledby` / `aria-describedby` go on the `<table>`.
+ */
 export type DataTableProps<Row> = DataTableOwnProps<Row> &
   DataTableLabelProps &
   Omit<
@@ -88,10 +117,25 @@ export type DataTableProps<Row> = DataTableOwnProps<Row> &
     keyof DataTableOwnProps<Row> | 'aria-label' | 'aria-labelledby' | 'children'
   >;
 
-const INTERACTIVE = 'a, button, input, select, textarea, label, [role="button"], [role="link"]';
+const INTERACTIVE = [
+  'a',
+  'button',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'summary',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="checkbox"]',
+  '[role="menuitem"]',
+  '[role="switch"]',
+  '[tabindex]:not([tabindex="-1"])',
+].join(', ');
 
-function defaultCell<Row>(row: Row, key: string): ReactNode {
-  const value = (row as Record<string, unknown>)[key];
+function cellContent<Row>(column: DataTableColumn<Row>, row: Row, rowIndex: number): ReactNode {
+  if (column.render !== undefined) return column.render(row, rowIndex);
+  const value: unknown = row[column.key];
   return typeof value === 'string' || typeof value === 'number' ? value : null;
 }
 
@@ -116,16 +160,25 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
     caption,
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
+    'aria-describedby': ariaDescribedBy,
     className,
     ...rest
   } = props;
 
   const lastIndex = columns.length - 1;
   const hasFlexColumn = columns.some((column) => column.width === undefined);
-  const minWidth = columns.reduce((sum, column) => sum + (column.width ?? 0), 0);
+  const minWidth = columns.reduce(
+    (sum, column) => sum + (column.width ?? column.minWidth ?? DEFAULT_FLEX_MIN_WIDTH),
+    0,
+  );
+
+  const hasError = hasSlot(errorState);
+  const showPlaceholder = loading || hasError || rows.length === 0;
+  const placeholder = loading ? loadingState : hasError ? errorState : emptyState;
 
   const isSelectable = (row: Row) => selection?.isRowSelectable?.(row) ?? true;
-  const selectableIds = selection ? rows.filter(isSelectable).map(getRowId) : [];
+  const selectableIds =
+    selection && !showPlaceholder ? rows.filter(isSelectable).map(getRowId) : [];
   const selectedCount = selection?.selectedIds.size ?? 0;
   const selectedAvailable = selection
     ? selectableIds.filter((id) => selection.selectedIds.has(id)).length
@@ -156,18 +209,10 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
     const target = event.target as Element;
     const interactive = target.closest(INTERACTIVE);
     if (interactive && event.currentTarget.contains(interactive)) return;
+    // A drag that selects text in the row is not a click on the row.
+    if (window.getSelection()?.toString()) return;
     onRowClick?.(row);
   };
-
-  const hasError = errorState != null && errorState !== false;
-  const placeholder = loading
-    ? loadingState
-    : hasError
-      ? errorState
-      : rows.length === 0
-        ? emptyState
-        : null;
-  const showPlaceholder = loading || hasError || rows.length === 0;
 
   return (
     <div ref={ref} {...rest} className={cx(styles.root, className)}>
@@ -179,7 +224,7 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
               indeterminate={selectedAvailable > 0 && !allSelected}
               disabled={selectableIds.length === 0}
               onChange={toggleAll}
-              aria-label={selection.selectAllLabel ?? 'Select all available'}
+              aria-label={selection.selectAllLabel ?? 'Select all rows'}
             />
             <span className={styles.bulkCount} aria-live="polite">
               {selectedCount} selected
@@ -195,7 +240,12 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
               Select all available
             </TextLink>
             <span aria-hidden> · </span>
-            <TextLink variant="inline" size="sm" onClick={clear} disabled={selectedCount === 0}>
+            <TextLink
+              variant="inline"
+              size="sm"
+              onClick={clear}
+              disabled={loading || selectedCount === 0}
+            >
               Clear
             </TextLink>
           </div>
@@ -208,11 +258,10 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
           style={{ minWidth: `calc(${minWidth}px + ${columns.length + 1} * var(--space-12))` }}
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledBy}
+          aria-describedby={ariaDescribedBy}
           aria-busy={loading || undefined}
         >
-          {caption != null && caption !== false && (
-            <caption className={a11y.visuallyHidden}>{caption}</caption>
-          )}
+          {hasSlot(caption) && <caption className={a11y.visuallyHidden}>{caption}</caption>}
           <colgroup>
             {columns.map((column, index) => {
               const flexes = column.width === undefined || (!hasFlexColumn && index === lastIndex);
@@ -249,7 +298,7 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
                   className={styles.placeholderCell}
                   style={{ '--placeholder-rows': placeholderRows } as CSSProperties}
                 >
-                  {placeholder}
+                  <div role="status">{placeholder}</div>
                 </td>
               </tr>
             ) : (
@@ -265,9 +314,7 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
                     onClick={onRowClick ? handleRowClick(row) : undefined}
                   >
                     {columns.map((column, columnIndex) => {
-                      const content = column.render
-                        ? column.render(row, rowIndex)
-                        : defaultCell(row, column.key);
+                      const content = cellContent(column, row, rowIndex);
                       return (
                         <td
                           key={column.key}
@@ -297,7 +344,7 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
         </table>
       </div>
 
-      {footnote != null && footnote !== false && <CardFootnote>{footnote}</CardFootnote>}
+      {hasSlot(footnote) && <CardFootnote>{footnote}</CardFootnote>}
     </div>
   );
 }

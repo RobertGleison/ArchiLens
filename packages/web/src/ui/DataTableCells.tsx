@@ -40,11 +40,21 @@ export const IdentityCell = forwardRef<HTMLDivElement, IdentityCellProps>(functi
 });
 
 /**
- * Scan progress in a table cell (Figma 3:12864): an 11px label 6px above a 4px bar, 220px wide.
- * Takes the `ProgressBar` props.
+ * Scan progress in a table cell (Figma 3:12864): an 11px label 6px above a 4px bar, label and bar
+ * within 220px. Takes the `ProgressBar` props (always the `sm` size).
  */
 export const ProgressCell = forwardRef<HTMLDivElement, ProgressBarProps>(
   function ProgressCell(props, ref) {
+    if (props.label !== undefined) {
+      return (
+        <ProgressBar
+          ref={ref}
+          {...props}
+          size="sm"
+          wrapperClassName={cx(styles.progress, props.wrapperClassName)}
+        />
+      );
+    }
     return (
       <ProgressBar
         ref={ref}
