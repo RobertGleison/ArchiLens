@@ -19,6 +19,7 @@
   --color-ink: #353535;
   --color-ink-muted: rgba(53, 53, 53, 0.7);
   --color-surface-subtle: rgba(53, 53, 53, 0.02); /* neutral pill, table header, ⌘K, btn hover */
+  --color-skeleton: rgba(53, 53, 53, 0.06); /* loading skeleton blocks (not in Figma; LIN-87) */
   --color-accent: #3c6e71;
   --color-accent-hover: #376568; /* primary hover/active: accent ~8% darker (not in Figma) */
   --color-accent-tint: rgba(60, 110, 113, 0.05);

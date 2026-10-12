@@ -11,6 +11,7 @@ const EXPECTED: Record<string, string> = {
   '--color-ink': '#353535',
   '--color-ink-muted': 'rgba(53, 53, 53, 0.7)',
   '--color-surface-subtle': 'rgba(53, 53, 53, 0.02)',
+  '--color-skeleton': 'rgba(53, 53, 53, 0.06)',
   '--color-accent': '#3c6e71',
   '--color-accent-hover': '#376568',
   '--color-accent-tint': 'rgba(60, 110, 113, 0.05)',
@@ -114,6 +115,8 @@ describe('design tokens', () => {
       search: 17,
       nav: 18,
       notice: 18,
+      spinner: 18,
+      empty: 28,
       logo: 28,
     });
   });

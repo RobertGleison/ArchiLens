@@ -1,4 +1,4 @@
-import { RotateCw } from 'lucide-react';
+import { FolderGit2, Play, RotateCw } from 'lucide-react';
 import { useState } from 'react';
 import type { RepoScanState } from '@archilens/shared';
 import { scanStatusToPill } from '../scans/scanStatusPill';
@@ -6,6 +6,8 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DataTable, type DataTableColumn } from '../ui/DataTable';
 import { IdentityCell, ProgressCell } from '../ui/DataTableCells';
+import { EmptyState } from '../ui/EmptyState';
+import { ErrorState } from '../ui/ErrorState';
 import { StatusPill } from '../ui/StatusPill';
 import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
@@ -310,12 +312,18 @@ const MODULE_COLUMNS: DataTableColumn<Module>[] = [
   },
 ];
 
-/** DataTable examples matching the Figma tables (LIN-85). */
+const TABLE_STATES = ['empty', 'loading', 'error'] as const;
+
+/** DataTable examples matching the Figma tables (LIN-85), plus the LIN-87 state area. */
 export function DataTablePreview() {
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(['inventory-api', 'catalog-api', 'notification-svc']),
   );
-  const [state, setState] = useState<'empty' | 'loading' | 'error'>('empty');
+  const [retrying, setRetrying] = useState(false);
+  const retry = () => {
+    setRetrying(true);
+    window.setTimeout(() => setRetrying(false), 1000);
+  };
   return (
     <>
       <div className={styles.mainColumn}>
@@ -374,33 +382,41 @@ export function DataTablePreview() {
         </Card>
       </div>
 
-      <div className={styles.discoverColumn}>
-        <Card
-          title="States"
-          description="Slots for LIN-87 state components; 3 rows high by default"
-          action={
-            <Button
-              size="sm"
-              onClick={() =>
-                setState((s) => (s === 'empty' ? 'loading' : s === 'loading' ? 'error' : 'empty'))
+      {TABLE_STATES.map((state) => (
+        <div key={state} className={styles.discoverColumn}>
+          <Card title={`State: ${state}`} description="placeholderRows={4}">
+            <DataTable
+              caption={`Scan queue (${state})`}
+              columns={JOB_COLUMNS.slice(0, 3)}
+              rows={[]}
+              getRowId={(j) => j.id}
+              placeholderRows={4}
+              loading={state === 'loading'}
+              errorState={
+                state === 'error' ? (
+                  <ErrorState
+                    message="Couldn't load the scan queue. The local server did not respond."
+                    onRetry={retry}
+                    retrying={retrying}
+                  />
+                ) : undefined
               }
-            >
-              Next state ({state})
-            </Button>
-          }
-        >
-          <DataTable
-            caption="Scan queue"
-            columns={JOB_COLUMNS.slice(0, 4)}
-            rows={[]}
-            getRowId={(j) => j.id}
-            loading={state === 'loading'}
-            loadingState="Loading scans…"
-            errorState={state === 'error' ? 'Could not load the scan queue.' : undefined}
-            emptyState="No scans queued."
-          />
-        </Card>
-      </div>
+              emptyState={
+                <EmptyState
+                  icon={FolderGit2}
+                  title="No scans queued"
+                  description="Scans appear here when a schedule runs or you start one."
+                  action={
+                    <Button size="sm" icon={Play}>
+                      Run scan
+                    </Button>
+                  }
+                />
+              }
+            />
+          </Card>
+        </div>
+      ))}
     </>
   );
 }

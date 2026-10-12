@@ -7,6 +7,7 @@ import { Button } from './Button';
 import { DataTable, type DataTableColumn, type DataTableProps } from './DataTable';
 import { IdentityCell, ProgressCell } from './DataTableCells';
 import styles from './DataTable.module.css';
+import { ErrorState } from './ErrorState';
 
 interface Repo {
   id: string;
@@ -265,6 +266,41 @@ describe('DataTable', () => {
     rerender(<DataTable {...props} rows={REPOS} errorState="Could not load scans" />);
     expect(screen.getByRole('status')).toHaveTextContent('Could not load scans');
     expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy');
+  });
+
+  it('shows skeleton rows lined up with the columns while loading without a loadingState', () => {
+    render(
+      <DataTable
+        aria-label="Queue"
+        columns={COLUMNS}
+        rows={REPOS}
+        getRowId={getRowId}
+        loading
+        placeholderRows={4}
+      />,
+    );
+    // One status (the table's state area) reading the skeleton's label.
+    const statuses = screen.getAllByRole('status');
+    expect(statuses).toHaveLength(1);
+    expect(statuses[0]).toHaveTextContent(/^Loading$/);
+    expect(statuses[0]?.querySelectorAll('[aria-hidden="true"]')).toHaveLength(4 * COLUMNS.length);
+  });
+
+  it('lets an ErrorState in the error slot announce through the state area', async () => {
+    const onRetry = vi.fn();
+    render(
+      <DataTable
+        aria-label="Queue"
+        columns={COLUMNS}
+        rows={[]}
+        getRowId={getRowId}
+        errorState={<ErrorState message="Could not load scans" onRetry={onRetry} />}
+      />,
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent('Could not load scans');
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -115,7 +115,7 @@ describe('app shell routes', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Go to Overview' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Back to Overview' })).toHaveAttribute('href', '/');
   });
 
   it('serves the token preview outside the shell in dev', async () => {

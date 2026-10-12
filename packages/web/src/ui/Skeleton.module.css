@@ -1,0 +1,94 @@
+/*
+ * Loading skeletons (LIN-87, derived; Figma draws none). Blocks: --color-skeleton, radius 4, a
+ * slow opacity pulse (off under prefers-reduced-motion). Line boxes use the real line height with
+ * a bar as tall as the font size, so a skeleton is as tall as the text it replaces.
+ */
+.block {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--color-skeleton);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    animation: none;
+  }
+}
+
+/* Line box: the type token's line height; the bar inside is font-size tall. */
+.line {
+  --skeleton-font-size: var(--font-size-body-sm);
+  display: flex;
+  align-items: center;
+  height: calc(var(--skeleton-font-size) * var(--line-height-default));
+}
+
+.line > .block {
+  height: var(--skeleton-font-size);
+}
+
+.sm {
+  --skeleton-font-size: var(--font-size-body-sm);
+}
+
+.md {
+  --skeleton-font-size: var(--font-size-title);
+}
+
+.lg {
+  --skeleton-font-size: var(--font-size-display);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Outlined StatTile frame (3:12713): border, radius 8, padding 20, gap 5. */
+.statTile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  padding: var(--space-card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+/* Card frame (3:12730): border, radius 8, padding 20, gap 16; heading title + subtitle, gap 2. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  padding: var(--space-card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.cardHeading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Table body rows (3:12852): 60px, padding-x 12, gap 12, bottom border on every row. */
+.tableRow {
+  display: grid;
+  grid-template-columns: var(--skeleton-columns);
+  align-items: center;
+  column-gap: var(--space-12);
+  height: var(--size-table-row-min);
+  padding: 0 var(--space-12);
+  border-bottom: var(--border-default);
+}

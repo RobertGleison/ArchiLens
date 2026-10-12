@@ -84,6 +84,16 @@
   vertical-align: middle;
 }
 
+/* Default loading: SkeletonTableRows draws its own 60px rows and borders edge to edge. */
+.flushRow {
+  border-bottom: none;
+}
+
+.flushCell {
+  padding: 0;
+  vertical-align: top;
+}
+
 /* Selection (3:13066): 16px checkbox, 10px before the first column's content. */
 .selectionCell {
   display: flex;

@@ -51,6 +51,7 @@ import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
 import { DataTablePreview } from './DataTablePreview';
 import { FormsPreview, TabsPreview } from './FormsPreview';
+import { StatesPreview } from './StatesPreview';
 
 const noop = () => {};
 
@@ -467,6 +468,10 @@ export function ComponentPreview() {
 
       <Block title="DataTable">
         <DataTablePreview />
+      </Block>
+
+      <Block title="Empty, loading and error states">
+        <StatesPreview />
       </Block>
 
       <Block title="AttributeList / AnchorList">

@@ -1,6 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { PageHeading } from '../ui/PageHeading';
-import styles from './RouteErrorBoundary.module.css';
+import { ErrorState } from '../ui/ErrorState';
 
 export interface RouteErrorBoundaryProps {
   /** Clears the error when it changes (the shell passes the current pathname). */
@@ -14,7 +13,8 @@ interface State {
 
 /**
  * Catches render errors in the routed page so the shell (sidebar, utility bar) stays usable.
- * Navigating to another route resets it.
+ * Shows the page-level `ErrorState`; Retry re-renders the page, and navigating to another route
+ * resets it too.
  */
 export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, State> {
   override state: State = { error: null };
@@ -33,18 +33,20 @@ export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, State
     console.error('Route render failed', error, info.componentStack);
   }
 
+  private readonly retry = () => this.setState({ error: null });
+
   override render() {
     const { error } = this.state;
     if (!error) return this.props.children;
 
     return (
-      <>
-        <PageHeading
-          title="Something went wrong"
-          description="This page failed to load. Try another page, or reload the app."
-        />
-        <p className={styles.detail}>{error.message}</p>
-      </>
+      <ErrorState
+        variant="page"
+        title="Something went wrong"
+        description="This page failed to load. Try again, or go back to Overview."
+        detail={error.message}
+        onRetry={this.retry}
+      />
     );
   }
 }

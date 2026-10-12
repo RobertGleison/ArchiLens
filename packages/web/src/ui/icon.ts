@@ -35,6 +35,10 @@ export const ICON_SIZE = {
   nav: 18,
   /** Leading icon of a context notice. */
   notice: 18,
+  /** Stand-alone loading spinner (in pills and buttons it takes their icon size). */
+  spinner: 18,
+  /** Leading icon of an empty state. */
+  empty: 28,
   /** The `blocks` product logo. */
   logo: 28,
 } as const;

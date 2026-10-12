@@ -46,4 +46,19 @@ describe('AppShell error boundary', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'History page' })).toBeInTheDocument();
     expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
   });
+
+  it('uses the page-level ErrorState: Retry re-renders the page, Back to Overview links home', () => {
+    renderShellAt('/reports');
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong');
+    expect(screen.getByRole('link', { name: 'Back to Overview' })).toHaveAttribute('href', '/');
+
+    const errors = vi.mocked(console.error).mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    // The page threw again (Boom always does), so the boundary caught a second render error.
+    expect(vi.mocked(console.error).mock.calls.length).toBeGreaterThan(errors);
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Something went wrong' }),
+    ).toBeInTheDocument();
+  });
 });

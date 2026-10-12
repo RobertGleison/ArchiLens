@@ -11,6 +11,8 @@ import {
 import { CardFootnote } from './Card';
 import { Checkbox } from './Checkbox';
 import { cx } from './cx';
+import { LiveRegionContext } from './liveRegion';
+import { SkeletonTableRows } from './Skeleton';
 import { hasSlot } from './slot';
 import { TextLink } from './TextLink';
 import styles from './DataTable.module.css';
@@ -79,12 +81,18 @@ interface DataTableOwnProps<Row> {
   onRowClick?: (row: Row) => void;
   /** Row selection: a checkbox before the first column's content and a bulk bar above the table. */
   selection?: DataTableSelection<Row>;
-  /** Shown instead of the rows when `rows` is empty (centred in the table area). */
+  /**
+   * Shown instead of the rows when `rows` is empty (centred in the table area), e.g. an
+   * `EmptyState` (full: give it `placeholderRows={4}` if it has an action) or a compact one.
+   */
   emptyState?: ReactNode;
-  /** Replaces the rows with `loadingState` and marks the table busy. */
+  /**
+   * Replaces the rows with `loadingState` and marks the table busy. Without `loadingState` it
+   * shows `SkeletonTableRows` (one per `placeholderRows`) lined up with the columns.
+   */
   loading?: boolean;
   loadingState?: ReactNode;
-  /** When set, replaces the rows (e.g. a load error with a retry action). */
+  /** When set, replaces the rows: an `ErrorState` wired to a retry callback. */
   errorState?: ReactNode;
   /**
    * Height of the empty / loading / error area in rows (60px each), so switching between states
@@ -174,7 +182,16 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
 
   const hasError = hasSlot(errorState);
   const showPlaceholder = loading || hasError || rows.length === 0;
-  const placeholder = loading ? loadingState : hasError ? errorState : emptyState;
+  const skeleton = loading && loadingState === undefined;
+  const placeholder = skeleton ? (
+    <SkeletonTableRows rows={placeholderRows} columns={columns.map((column) => column.width)} />
+  ) : loading ? (
+    loadingState
+  ) : hasError ? (
+    errorState
+  ) : (
+    emptyState
+  );
 
   const isSelectable = (row: Row) => selection?.isRowSelectable?.(row) ?? true;
   const selectableIds =
@@ -292,13 +309,16 @@ function DataTableInner<Row>(props: DataTableProps<Row>, ref: ForwardedRef<HTMLD
           </thead>
           <tbody>
             {showPlaceholder ? (
-              <tr className={styles.row}>
+              <tr className={cx(styles.row, skeleton && styles.flushRow)}>
                 <td
                   colSpan={columns.length}
-                  className={styles.placeholderCell}
+                  className={cx(styles.placeholderCell, skeleton && styles.flushCell)}
                   style={{ '--placeholder-rows': placeholderRows } as CSSProperties}
                 >
-                  <div role="status">{placeholder}</div>
+                  {/* State components inside announce through this region, not their own. */}
+                  <div role="status">
+                    <LiveRegionContext.Provider value>{placeholder}</LiveRegionContext.Provider>
+                  </div>
                 </td>
               </tr>
             ) : (
