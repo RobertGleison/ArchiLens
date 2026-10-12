@@ -163,3 +163,20 @@
   composes: bodySm from '../styles/typography.module.css';
   font-weight: var(--font-weight-medium);
 }
+
+/* Repository detail card content width at 1440px (Figma 3:13320 architecture map). */
+.diagramColumn {
+  width: 750px;
+}
+
+/* History A/B communication chain (3:14338): gap 8, items centred. */
+.chain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.chainArrow {
+  flex-shrink: 0;
+  color: var(--color-ink);
+}

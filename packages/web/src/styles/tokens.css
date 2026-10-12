@@ -54,6 +54,7 @@
   --font-size-body-sm: 12px; /* [400; 500 field label; 600 buttons, row identity] */
   --font-size-caption: 11px; /* [400 or 500] secondary lines, pills, breadcrumb */
   --font-size-overline: 10px; /* [400-600, uppercase] table column headers, footnotes */
+  --font-size-micro: 9px; /* [400, IBM Plex Mono] diagram protocol labels on edges */
 
   /* Spacing scale (px value in the name) */
   --space-2: 2px;
@@ -89,6 +90,7 @@
 
   /* Border (the only elevation) */
   --border-width: 1px;
+  --border-width-emphasis: 1.5px; /* diagram edges, focus/added entity node border */
   --border-default: var(--border-width) solid var(--color-border);
 
   /* Focus (keyboard only; applied globally via :focus-visible in base.css) */
@@ -113,4 +115,8 @@
   --size-option-card-min: 200px; /* option cards wrap below this width */
   --size-aside: 346px; /* detail-screen aside column */
   --size-aside-wide: 390px; /* overview aside column */
+  --size-entity-width: 166px; /* architecture diagram entity node (3:13334) */
+  --size-entity-height: 66px;
+  --size-entity-compact-width: 90px; /* History A/B boundary entity (3:14339) */
+  --size-entity-compact-height: 48px; /* minimum height */
 }

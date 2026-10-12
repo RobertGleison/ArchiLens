@@ -65,3 +65,9 @@
   line-height: var(--line-height-default);
   text-transform: uppercase;
 }
+
+:where(.micro) {
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}

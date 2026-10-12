@@ -50,6 +50,7 @@ import { StatusPill } from '../ui/StatusPill';
 import { TextLink } from '../ui/TextLink';
 import styles from './ComponentPreview.module.css';
 import { DataTablePreview } from './DataTablePreview';
+import { DiagramPreview } from './DiagramPreview';
 import { FormsPreview, TabsPreview } from './FormsPreview';
 import { StatesPreview } from './StatesPreview';
 
@@ -472,6 +473,10 @@ export function ComponentPreview() {
 
       <Block title="Empty, loading and error states">
         <StatesPreview />
+      </Block>
+
+      <Block title="Architecture diagram">
+        <DiagramPreview />
       </Block>
 
       <Block title="AttributeList / AnchorList">

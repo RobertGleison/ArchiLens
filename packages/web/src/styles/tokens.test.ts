@@ -40,6 +40,7 @@ const EXPECTED: Record<string, string> = {
   '--font-size-body-sm': '12px',
   '--font-size-caption': '11px',
   '--font-size-overline': '10px',
+  '--font-size-micro': '9px',
 
   ...Object.fromEntries(
     [2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 34].map((n) => [
@@ -61,6 +62,7 @@ const EXPECTED: Record<string, string> = {
   '--radius-full': '50%',
 
   '--border-width': '1px',
+  '--border-width-emphasis': '1.5px',
   '--border-default': 'var(--border-width) solid var(--color-border)',
   '--focus-ring': '2px solid var(--color-accent)',
   '--focus-ring-offset': '2px',
@@ -81,6 +83,10 @@ const EXPECTED: Record<string, string> = {
   '--size-option-card-min': '200px',
   '--size-aside': '346px',
   '--size-aside-wide': '390px',
+  '--size-entity-width': '166px',
+  '--size-entity-height': '66px',
+  '--size-entity-compact-width': '90px',
+  '--size-entity-compact-height': '48px',
 };
 
 describe('design tokens', () => {
@@ -118,6 +124,7 @@ describe('design tokens', () => {
       spinner: 18,
       empty: 28,
       logo: 28,
+      entity: 13,
     });
   });
 

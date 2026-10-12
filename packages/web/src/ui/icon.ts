@@ -41,6 +41,8 @@ export const ICON_SIZE = {
   empty: 28,
   /** The `blocks` product logo. */
   logo: 28,
+  /** Entity kind icon in an architecture diagram node. */
+  entity: 13,
 } as const;
 
 export type IconSize = keyof typeof ICON_SIZE;

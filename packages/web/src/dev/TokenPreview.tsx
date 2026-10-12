@@ -46,6 +46,7 @@ export const TYPE_META: Record<string, TypeMeta> = {
     uppercase: true,
     example: 'Pinned project',
   },
+  micro: { weights: ['regular'], example: 'HTTPS' },
 };
 
 const FALLBACK_META: TypeMeta = { weights: ['regular'], example: 'The quick brown fox' };
