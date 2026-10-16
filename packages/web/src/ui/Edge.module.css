@@ -1,0 +1,62 @@
+/*
+ * Diagram relationship edge, Figma 3:13322–3:13333 (map) and 3:13947 (teal added relationship):
+ * 1.5px line, 6×8 arrowhead in the same colour, IBM Plex Mono 9px muted protocol label. Dashed
+ * (removed relationships) is not drawn in Figma; it mirrors the removed entity's dashed border.
+ * The wrapper covers the stage; the SVG has no viewBox, so its user units are stage pixels.
+ */
+.edge {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.neutral {
+  color: var(--color-border);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Square caps close the corners where a fan-out's trunk, rail and branches meet. */
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--border-width-emphasis);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.dashed .line {
+  stroke-dasharray: var(--space-4) var(--space-3);
+}
+
+.arrow {
+  fill: currentColor;
+}
+
+.label {
+  composes: micro from '../styles/typography.module.css';
+  position: absolute;
+  font-family: var(--font-mono);
+  line-height: var(--line-height-normal);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+/* Default placements: the point is the label's bottom-left (above) or middle-left (beside). */
+.labelAbove {
+  transform: translateY(-100%);
+}
+
+.labelBeside {
+  transform: translateY(-50%);
+}

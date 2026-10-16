@@ -1,0 +1,76 @@
+/*
+ * Switch, Figma 3:13172 / 3:14554 (on): track 30x18 (two thumbs + padding), radius 20, padding 3,
+ * accent; thumb white 12x12, radius 6, aligned right.
+ * Derived (not drawn in Figma): off = border-grey track, thumb left; keyboard focus = the global
+ * focus ring; disabled = reduced opacity. A transparent ::before widens the target to 36x24
+ * (WCAG 2.5.8) without changing layout.
+ */
+.switch {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  width: calc(var(--space-12) * 2 + var(--space-3) * 2);
+  height: calc(var(--space-12) + var(--space-3) * 2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-switch);
+  background: var(--color-border);
+  cursor: pointer;
+}
+
+.switch::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-3));
+}
+
+.switch[aria-checked='true'] {
+  justify-content: flex-end;
+  background: var(--color-accent);
+}
+
+.switch:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.thumb {
+  width: var(--space-12);
+  height: var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/* Preference row, 3:13168: gap 18, items centred; text column gap 3. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-18);
+}
+
+.text {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.title {
+  composes: body from '../styles/typography.module.css';
+  align-self: flex-start;
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.description {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+.row:has(.switch:disabled) .title {
+  cursor: not-allowed;
+}

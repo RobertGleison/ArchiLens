@@ -1,0 +1,56 @@
+/*
+ * Text links and inline actions (LIN-83): accent text, no underline until hover.
+ * - action: section header actions and table identity links (600 12px), e.g. Figma 3:12749
+ * - inline: links in body copy (400 12px, or 11px with size sm), e.g. 3:13303
+ * - mono: evidence / file references (IBM Plex Mono 400 11px)
+ * - quiet: table row actions in ink (400 12px), e.g. "View job →" / "Cancel" 3:12871
+ */
+.link {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-sans);
+  text-align: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+/* Button mode only (links cannot be disabled). */
+.link:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.action {
+  composes: bodySm from '../styles/typography.module.css';
+  font-weight: var(--font-weight-semibold);
+}
+
+.inline {
+  composes: bodySm from '../styles/typography.module.css';
+}
+
+.sm {
+  font-size: var(--font-size-caption);
+}
+
+.mono {
+  composes: caption from '../styles/typography.module.css';
+  font-family: var(--font-mono);
+}
+
+.quiet {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink);
+}
+
+.icon {
+  margin-right: var(--space-4);
+  vertical-align: -0.125em;
+}

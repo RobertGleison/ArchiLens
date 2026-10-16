@@ -1,0 +1,30 @@
+/*
+ * Icon-only button, as in the utility bar (Figma 3:12688): an 18px icon with no border or fill.
+ * Hover (accent icon) and disabled are not drawn in Figma; derived from the tokens.
+ *
+ * Hit target: 3px padding makes it 24x24 (WCAG 2.2 target size minimum) and the matching -3px
+ * margin cancels it out, so the layout and the 18px visual stay as in Figma.
+ */
+.iconButton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin: calc(-1 * var(--space-3));
+  padding: var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled),
+.iconButton:active:not(:disabled) {
+  color: var(--color-accent);
+}
+
+.iconButton:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}

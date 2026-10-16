@@ -1,0 +1,161 @@
+/*
+ * Data table, Figma 3:12838 (scan queue), 3:12736 (landscape), 3:13052 (repositories with
+ * selection), 3:13484 (modules & evidence). No outer border; it sits inside a card.
+ * - Header (3:12839): 36px, subtle fill, padding-x 12, gap 12, 600 10px uppercase muted labels.
+ * - Record (3:12852): min 60px, padding 12, gap 12, items centred, 1px bottom border on every row
+ *   (the last row keeps it). Cell text 400 12px ink.
+ * The 12px gap is each cell's left padding (the last cell also gets 12px on the right), so
+ * column widths are the Figma widths plus 12px (see DataTable.tsx).
+ * Derived (not in Figma): hover fill on clickable rows; the empty / loading / error area.
+ */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.scroller {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.headerRow {
+  background: var(--color-surface-subtle);
+}
+
+.headerCell {
+  composes: overline from '../styles/typography.module.css';
+  height: var(--size-table-header);
+  padding: 0 0 0 var(--space-12);
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  font-weight: var(--font-weight-semibold);
+  text-align: start;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.row {
+  height: var(--size-table-row-min);
+  border-bottom: var(--border-default);
+}
+
+.row[data-clickable] {
+  cursor: pointer;
+}
+
+.row[data-clickable]:hover {
+  background: var(--color-surface-subtle);
+}
+
+.cell {
+  composes: bodySm from '../styles/typography.module.css';
+  padding: var(--space-12) 0 var(--space-12) var(--space-12);
+  overflow: hidden;
+  color: var(--color-ink);
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.headerCell:last-child,
+.cell:last-child {
+  padding-right: var(--space-12);
+}
+
+.end {
+  text-align: end;
+}
+
+.placeholderCell {
+  composes: bodySm from '../styles/typography.module.css';
+  height: calc(var(--placeholder-rows) * var(--size-table-row-min));
+  padding: var(--space-12);
+  color: var(--color-ink-muted);
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Default loading: SkeletonTableRows draws its own 60px rows and borders edge to edge. */
+.flushRow {
+  border-bottom: none;
+}
+
+.flushCell {
+  padding: 0;
+  vertical-align: top;
+}
+
+/* Selection (3:13066): 16px checkbox, 10px before the first column's content. */
+.selectionCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.selectionContent {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Identity (3:12854): 600 12px name over an 11px muted line, gap 3. */
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.identityPrimary {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Selected rows show the first cell's identity name in accent (3:13070); other cells keep ink. */
+.row[data-selected] > .cell:first-child .identityPrimary {
+  color: var(--color-accent);
+}
+
+.identitySecondary {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+/* Scan progress (3:12866): 220px bar. */
+.progress {
+  width: var(--size-table-progress);
+  max-width: 100%;
+}
+
+/* Bulk selection (3:13046): select-all + count left (gap 8), inline links right; 11px. */
+.bulkBar {
+  composes: caption from '../styles/typography.module.css';
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.bulkSelect {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.bulkCount {
+  color: var(--color-ink);
+}
+
+.bulkActions {
+  color: var(--color-accent);
+  white-space: nowrap;
+}

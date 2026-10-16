@@ -1,0 +1,73 @@
+/*
+ * Text styles, one class per type-scale token in tokens.css (--font-size-<name>), carrying the
+ * default weight and line-height. Use them via `composes:` from component modules and override
+ * font-weight where the design uses another weight (see the type scale comments in tokens.css).
+ *
+ * Each class is wrapped in :where() (zero specificity). A composing component overrides these
+ * with selectors of equal specificity otherwise, and which rule wins would then depend on cascade
+ * order, i.e. on CSS import order (Vite also inlines a composed file into each composing module),
+ * which components do not control. With zero specificity a component's own declarations win.
+ *
+ * Pitfalls: element selectors in base.css (e.g. `code, kbd`) beat :where() and so override these
+ * classes; and a `font:` shorthand in a component resets every composed font value.
+ */
+:where(.display) {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+:where(.displaySm) {
+  font-size: var(--font-size-display-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+:where(.statSm) {
+  font-size: var(--font-size-stat-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+:where(.title) {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+:where(.bodyLg) {
+  font-size: var(--font-size-body-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-default);
+}
+
+:where(.body) {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+:where(.bodySm) {
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+:where(.caption) {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}
+
+:where(.overline) {
+  font-size: var(--font-size-overline);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-default);
+  text-transform: uppercase;
+}
+
+:where(.micro) {
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+}

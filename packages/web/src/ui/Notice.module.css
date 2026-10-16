@@ -1,0 +1,20 @@
+/* Context notice, Figma 3:13527: accent tint, no border, radius 6, padding 14, gap 10, centred. */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-tint);
+  color: var(--color-ink);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.text {
+  composes: bodySm from '../styles/typography.module.css';
+  flex: 1 1 0;
+  min-width: 0;
+}

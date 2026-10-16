@@ -1,0 +1,39 @@
+/*
+ * Progress bar: border-grey track, accent fill.
+ * - sm, scan progress 3:12864: 4px high, radius 2, 11px ink label 6px above.
+ * - md, monthly budget 3:14799: 5px high, radius 3.
+ */
+.labelled {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.label {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink);
+}
+
+.track {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  background: var(--color-border);
+}
+
+.fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+.sm {
+  height: var(--size-progress-sm);
+  border-radius: var(--radius-2xs);
+}
+
+.md {
+  height: var(--size-progress-md);
+  border-radius: var(--radius-xs);
+}

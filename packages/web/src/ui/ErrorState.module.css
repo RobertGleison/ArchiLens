@@ -1,0 +1,41 @@
+/*
+ * Error state (LIN-87, derived; Figma draws none).
+ * - card: the context notice layout (3:13527: radius 6, padding 14, gap 10, centred) on the
+ *   neutral subtle fill of the "Failed" pill (3:12906) instead of the accent tint; 18px
+ *   circle-alert in ink, 12px ink message, trailing small secondary Retry.
+ * - page: EmptyState layout; the error detail is a muted mono line.
+ */
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  padding: var(--space-14);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  color: var(--color-ink);
+  text-align: start;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.message {
+  composes: bodySm from '../styles/typography.module.css';
+  flex: 1 1 0;
+  min-width: 0;
+  color: var(--color-ink);
+}
+
+.page {
+  align-self: center;
+  max-width: 100%;
+}
+
+.detail {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}

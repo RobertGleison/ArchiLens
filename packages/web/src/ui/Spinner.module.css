@@ -1,0 +1,34 @@
+/* Spinning `loader` icon for loading buttons, the "Running" status pill and stand-alone loading. */
+.spinner {
+  flex-shrink: 0;
+  animation: spin 1s linear infinite;
+}
+
+/* Stand-alone (LIN-87, derived): 18px accent loader + 12px muted label, gap 8. */
+.standalone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.accent {
+  color: var(--color-accent);
+}
+
+.label {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion: keep the static loader glyph, which still reads as "in progress". */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

@@ -1,0 +1,182 @@
+.page {
+  padding: var(--space-page);
+  max-width: 1280px;
+}
+
+.title {
+  composes: display from '../styles/typography.module.css';
+  margin: 0 0 var(--space-24);
+}
+
+.section {
+  margin-bottom: var(--space-32);
+  padding: var(--space-card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.sectionTitle {
+  composes: title from '../styles/typography.module.css';
+  margin: 0 0 var(--space-16);
+}
+
+.rows {
+  display: grid;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.label {
+  composes: bodySm from '../styles/typography.module.css';
+  color: var(--color-ink-muted);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.body {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.tileRow {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.tileRow > * {
+  flex: 1 1 0;
+}
+
+.asideRow {
+  display: grid;
+  grid-template-columns: repeat(2, var(--size-aside));
+  align-items: start;
+  gap: var(--space-24);
+}
+
+.placeholder {
+  composes: bodySm from '../styles/typography.module.css';
+  padding: var(--space-24);
+  border: var(--border-width) dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+/* Scan progress in a table column (Figma 3:12866). */
+.tableProgress {
+  width: 220px;
+}
+
+.caption {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/* Overview main column width at 1440px (Figma 3:12730). */
+.mainColumn {
+  width: 746px;
+}
+
+/* Discover repositories card width at 1440px (Figma 3:13029). */
+.discoverColumn {
+  width: 790px;
+}
+
+/* Full content width at 1440px (Figma 3:12838 scan queue card). */
+.fullColumn {
+  width: 1160px;
+}
+
+/* Form previews: Figma widths at 1440px. Fixed-width fields opt out of FieldRow's equal sharing. */
+.discoverInner {
+  width: 750px; /* Discover card content (3:13035) */
+}
+
+.configInner {
+  width: 706px; /* Configuration card content (3:14500) */
+}
+
+.asideInner {
+  width: 306px; /* aside card content (3:14127) */
+}
+
+.w136 {
+  flex: 0 0 136px;
+}
+
+.w155 {
+  flex: 0 0 155px;
+}
+
+.w160 {
+  flex: 0 0 160px;
+}
+
+.w200 {
+  flex: 0 0 200px;
+}
+
+.w234 {
+  flex: 0 0 234px;
+}
+
+.w290 {
+  flex: 0 0 290px;
+}
+
+.tabPanel {
+  composes: bodySm from '../styles/typography.module.css';
+  padding: var(--space-16) 0 0;
+  color: var(--color-ink-muted);
+}
+
+/* "Also run on" row (3:14557): gap 16, items centred. */
+.inlineRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.inlineLabel {
+  composes: bodySm from '../styles/typography.module.css';
+  font-weight: var(--font-weight-medium);
+}
+
+/* Repository detail card content width at 1440px (Figma 3:13320 architecture map). */
+.diagramColumn {
+  width: 750px;
+}
+
+/* History A/B communication chain (3:14338): gap 8, items centred. */
+.chain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.chainArrow {
+  flex-shrink: 0;
+  color: var(--color-ink);
+}

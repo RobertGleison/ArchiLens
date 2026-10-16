@@ -1,0 +1,100 @@
+/*
+ * Architecture map canvas, Figma 3:13320 (and 3:13938): subtle fill, radius 6, no border, clipped.
+ * Content inset 14 top and bottom, 24 left and right; the boundary label sits at 18, 14 over the
+ * stage's top band (absolutely, so node positions do not depend on font metrics); 32 between the
+ * stage and the hosting line, 10 between the hosting line and the note. IBM Plex Mono for the
+ * boundary and hosting labels (10px muted, line-height normal); the note is Inter 10px teal.
+ */
+.canvas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--space-14) var(--space-24);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+}
+
+.boundary {
+  composes: overline from '../styles/typography.module.css';
+  position: absolute;
+  top: var(--space-14);
+  left: var(--space-18);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-ink-muted);
+}
+
+/*
+ * Horizontal scroller for wide stages. It spans the canvas's side insets (negative margin, equal
+ * padding) and 4px above and below, so node focus rings (2px + 2px offset) are not clipped; its
+ * own focus ring is drawn inside, because the canvas clips anything outside.
+ */
+.scroller {
+  align-self: stretch;
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-24));
+  padding: var(--space-4) var(--space-24);
+  overflow: auto;
+}
+
+.scroller:focus-visible {
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+}
+
+.stage {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-top: var(--space-32);
+}
+
+.hosting,
+.note {
+  composes: overline from '../styles/typography.module.css';
+  margin: 0;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  text-transform: none;
+}
+
+.hosting {
+  font-family: var(--font-mono);
+  color: var(--color-ink-muted);
+}
+
+.note {
+  color: var(--color-accent);
+}
+
+/* Summary chips row (3:13986): pills 10 apart, optional action pushed to the right. */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+}
+
+.items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+}
+
+.action {
+  margin-inline-start: auto;
+}

@@ -1,0 +1,125 @@
+/*
+ * Architecture entity node.
+ * - regular, Figma 3:13334: 166×66, white, 1px border, radius 6, padding 12, column gap 5;
+ *   heading row gap 6 with a 13px icon and Inter 600 11px name; Inter 400 10px muted subtitle.
+ * - compact, History 3:14339: 90 wide, min 48 tall, radius 4, padding 8, one centred Inter 500
+ *   10px label.
+ * - focus / added (3:13339, 3:13974): teal border and name (and icon). The regular node's border
+ *   is 1.5px; the compact one keeps 1px (3:14351).
+ * - removed (from the spec, not drawn in Figma): dashed grey border, struck-through muted name.
+ * Figma strokes sit inside the box and do not push content, so CSS padding is the Figma padding
+ * minus the border width: content stays 12px (8px compact) from the outer edge in every variant,
+ * and the regular node keeps its full 142px text width ("Session & idempotency cache" fits).
+ */
+.node {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: var(--border-default);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-align: start;
+  overflow: hidden;
+}
+
+/* Only the button form (with onClick) looks clickable. */
+.interactive {
+  cursor: pointer;
+}
+
+.interactive:hover {
+  background: var(--color-surface-subtle);
+}
+
+.placed {
+  position: absolute;
+}
+
+.regular {
+  gap: var(--space-5);
+  width: var(--size-entity-width);
+  height: var(--size-entity-height);
+  padding: calc(var(--space-12) - var(--border-width));
+  border-radius: var(--radius-md);
+}
+
+.compact {
+  align-items: center;
+  justify-content: center;
+  width: var(--size-entity-compact-width);
+  min-height: var(--size-entity-compact-height);
+  padding: calc(var(--space-8) - var(--border-width));
+  border-radius: var(--radius-sm);
+}
+
+/*
+ * Heading and subtitle may run 2px into the right padding before truncating: Chrome sets Inter
+ * a fraction of a pixel wider than Figma, so Figma's full-width (142px) labels would otherwise
+ * end in an ellipsis. (Stretched in the column, so the negative margin widens them.)
+ */
+.heading,
+.subtitle {
+  margin-inline-end: calc(-1 * var(--space-2));
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.name {
+  composes: caption from '../styles/typography.module.css';
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  composes: overline from '../styles/typography.module.css';
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  font-weight: var(--font-weight-regular);
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.compactName {
+  composes: overline from '../styles/typography.module.css';
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.focus,
+.added {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.regular.focus,
+.regular.added {
+  border-width: var(--border-width-emphasis);
+  padding: calc(var(--space-12) - var(--border-width-emphasis));
+}
+
+.removed {
+  border-style: dashed;
+  color: var(--color-ink-muted);
+}
+
+.removed .nameText {
+  text-decoration: line-through;
+}

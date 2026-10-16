@@ -1,0 +1,89 @@
+/*
+ * Checkbox, Figma 3:13067 (checked) / 3:13121 (unchecked): 16px box, radius 3, 1px border.
+ * Derived (not in Figma): hover = accent border, keyboard focus = the focus ring on the box,
+ * indeterminate = checked colours with a minus. Disabled keeps the drawn look (Figma shows a
+ * non-selectable "Monitored" row with a plain unchecked box) and only changes the cursor.
+ */
+.root {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+}
+
+/* Transparent native input over a 24px target, centred on the box. */
+.input {
+  position: absolute;
+  inset: calc(-1 * var(--space-4));
+  z-index: 1;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: var(--border-default);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
+  color: var(--color-on-dark);
+}
+
+.input:hover:not(:disabled) + .box {
+  border-color: var(--color-accent);
+}
+
+.input:checked + .box,
+.input:indeterminate + .box {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.input:focus-visible + .box {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.check,
+.mixed {
+  display: none;
+  flex-shrink: 0;
+}
+
+.input:checked:not(:indeterminate) + .box .check,
+.input:indeterminate + .box .mixed {
+  display: block;
+}
+
+/*
+ * Labelled row, Figma 3:13047 ("Select all", gap 8) / 3:14559 ("Push trigger", gap 7; the spec's
+ * 8 is used): label 11px ink. Disabled dims the label only (derived).
+ */
+.labelled {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+}
+
+.label {
+  composes: caption from '../styles/typography.module.css';
+  color: var(--color-ink);
+}
+
+.labelled:has(.input:disabled) {
+  cursor: not-allowed;
+}
+
+.labelled:has(.input:disabled) .label {
+  opacity: var(--opacity-disabled);
+}

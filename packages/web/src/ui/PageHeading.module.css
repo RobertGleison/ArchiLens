@@ -1,0 +1,70 @@
+/* Page heading, Figma 3:12699 (metadata row as on repository detail, 3:13294). */
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-5) + var(--space-4)); /* 9px */
+}
+
+.breadcrumb {
+  composes: caption from '../styles/typography.module.css';
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+}
+
+.crumbLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.crumbLink:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+}
+
+.text {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.title {
+  composes: display from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.description {
+  composes: body from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.meta {
+  composes: caption from '../styles/typography.module.css';
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-14);
+  color: var(--color-ink-muted);
+}

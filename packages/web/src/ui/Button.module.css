@@ -1,0 +1,86 @@
+/*
+ * Button, Figma 3:12705 (primary + secondary, md) and 3:12922 (secondary, sm).
+ * Hover, active, disabled and loading are not drawn in Figma; see the LIN-83 spec.
+ */
+.button {
+  composes: bodySm from '../styles/typography.module.css';
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: var(--size-control);
+  margin: 0;
+  padding: 0 var(--space-14);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sm {
+  height: var(--size-control-sm);
+  padding: 0 var(--space-10);
+  font-size: var(--font-size-caption);
+}
+
+.primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-dark);
+}
+
+.primary:hover:not(:disabled, [aria-disabled='true']),
+.primary:active:not(:disabled, [aria-disabled='true']) {
+  border-color: var(--color-accent-hover);
+  background: var(--color-accent-hover);
+}
+
+.secondary {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.secondary:hover:not(:disabled, [aria-disabled='true']),
+.secondary:active:not(:disabled, [aria-disabled='true']) {
+  background: var(--color-surface-subtle);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+/* Loading (aria-disabled + aria-busy) stays at full opacity; the spinner carries the state. */
+.button:disabled,
+.button[aria-disabled='true']:not([aria-busy='true']) {
+  opacity: var(--opacity-disabled);
+}
+
+.button[aria-busy='true'] {
+  cursor: progress;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/*
+ * Loading without a leading icon: hide the label (keeping the width) and centre the spinner.
+ * opacity, not visibility, so the label still names the button for assistive tech.
+ */
+.hiddenLabel {
+  opacity: 0;
+}
+
+.overlaySpinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}

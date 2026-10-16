@@ -1,0 +1,53 @@
+/* Utility bar, Figma 3:12688. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-20);
+  height: var(--size-utility-bar);
+  padding: 0 var(--space-page);
+  border-bottom: var(--border-default);
+  background: var(--color-surface);
+}
+
+/* Bespoke trigger: no Button variant matches this borderless, field-like control. */
+.search {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  min-width: 0;
+  border-radius: var(--radius-sm);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+}
+
+.placeholder {
+  composes: bodySm from '../styles/typography.module.css';
+  overflow: hidden;
+  color: var(--color-ink-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.utilities {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-20);
+}
+
+.sync {
+  composes: caption from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}

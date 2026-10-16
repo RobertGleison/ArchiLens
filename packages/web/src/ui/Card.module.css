@@ -1,0 +1,71 @@
+/*
+ * Section card, Figma 3:12730 ("Your architecture landscape"): white, 1px border, radius 8,
+ * padding 20, 16px column gap. No shadow (elevation is the border).
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+  padding: var(--space-card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+/* Section heading, 3:12731: title + subtitle (gap 2) left, action right, centred. */
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.headingText {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.title {
+  composes: title from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.description {
+  composes: caption from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.action {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+/* Sub-section label, 3:12787: 600 12px ink with an optional inline link on the right. */
+.subheading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+
+.subtitle {
+  composes: bodySm from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+}
+
+.footnote {
+  composes: caption from '../styles/typography.module.css';
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-overline);
+}
